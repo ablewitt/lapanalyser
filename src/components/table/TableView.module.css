@@ -1,0 +1,3 @@
+.wrap { display: flex; flex-direction: column; height: 100%; }
+.subTabs { display: flex; gap: 4px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.content { flex: 1; overflow: auto; padding: 12px; }

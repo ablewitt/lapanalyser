@@ -1,0 +1,2 @@
+.sortable { cursor: pointer; user-select: none; }
+.sortable:hover { color: var(--accent); }

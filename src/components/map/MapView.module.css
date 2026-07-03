@@ -1,0 +1,3 @@
+.wrap { height: 100%; width: 100%; display: flex; flex-direction: column; }
+.empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-dim); }
+.sectorToolbar { display: flex; gap: 6px; padding: 6px 10px; background: var(--surface); border-bottom: 1px solid #2a2d3d; flex-shrink: 0; }

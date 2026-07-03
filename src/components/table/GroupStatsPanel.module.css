@@ -1,0 +1,8 @@
+.wrap { display: flex; flex-direction: column; gap: 16px; }
+.summaryRow { display: flex; gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; flex: 1; }
+.cardLabel { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.cardValue { font-size: 22px; font-weight: 600; }
+.cardSub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.chartSection { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px; }
+.chartLabel { font-size: 11px; color: var(--text-dim); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }

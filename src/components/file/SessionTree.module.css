@@ -1,0 +1,30 @@
+.tree { overflow-y: auto; flex: 1; padding: 4px 0; }
+.empty { padding: 12px; color: var(--text-dim); text-align: center; }
+.session { border-bottom: 1px solid var(--border); padding: 8px; }
+.sessionHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+.venue { font-weight: 600; color: var(--text); }
+.removeBtn { padding: 0 6px; font-size: 14px; line-height: 1.4; }
+.filename { display: block; color: var(--text-dim); font-size: 11px; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.laps { display: flex; flex-direction: column; gap: 2px; }
+.lapRow { display: flex; align-items: center; gap: 4px; padding: 3px 4px; border-radius: 4px; }
+.lapRow:hover { background: var(--surface2); }
+.selected { background: rgba(79, 142, 247, 0.1); }
+.lapLabel { display: flex; align-items: center; gap: 6px; flex: 1; cursor: pointer; min-width: 0; }
+.colorSwatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.lapTime { margin-left: auto; color: var(--text-dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+.noLaps { color: var(--text-dim); font-size: 11px; padding: 4px; }
+.pinBtn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0 2px;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-dim);
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+}
+.lapRow:hover .pinBtn { opacity: 1; }
+.pinActive { opacity: 1 !important; color: #f4c430; }
+.pinBtn:hover { color: #f4c430; }

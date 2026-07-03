@@ -1,0 +1,33 @@
+.wrap { margin: 2px 4px 4px; }
+.row { display: flex; align-items: center; gap: 4px; }
+.label {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+.btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0 3px;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-dim);
+  opacity: 0.6;
+}
+.btn:hover { opacity: 1; }
+.selectWrap { display: flex; }
+.select {
+  flex: 1;
+  font-size: 11px;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 4px;
+}

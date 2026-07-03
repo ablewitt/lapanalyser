@@ -1,0 +1,37 @@
+import { create } from 'zustand';
+import type { Session } from '../domain/models';
+
+interface SessionsState {
+  sessions: Session[];
+  // sessionId -> circuit path. undefined = auto-detect, null = none, string = override
+  circuitOverrides: Record<string, string | null>;
+  addSession: (session: Session) => void;
+  removeSession: (id: string) => void;
+  setCircuitOverride: (sessionId: string, path: string | null | undefined) => void;
+}
+
+export const useSessionsStore = create<SessionsState>((set) => ({
+  sessions: [],
+  circuitOverrides: {},
+
+  addSession: (session) => set((state) => {
+    if (state.sessions.some(s => s.filename === session.filename)) return state;
+    return { sessions: [...state.sessions, session] };
+  }),
+
+  removeSession: (id) => set((state) => {
+    const overrides = { ...state.circuitOverrides };
+    delete overrides[id];
+    return { sessions: state.sessions.filter(s => s.id !== id), circuitOverrides: overrides };
+  }),
+
+  setCircuitOverride: (sessionId, path) => set((state) => {
+    const overrides = { ...state.circuitOverrides };
+    if (path === undefined) {
+      delete overrides[sessionId];
+    } else {
+      overrides[sessionId] = path;
+    }
+    return { circuitOverrides: overrides };
+  }),
+}));
