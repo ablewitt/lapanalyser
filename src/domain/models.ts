@@ -104,3 +104,25 @@ export interface SectorResult {
   endDistanceM: number;
   timeMs: number;
 }
+
+export interface SpeedTrap {
+  id: string;
+  distanceAlongLapM: number;
+  gps: GpsCoord;
+  heading: number;
+}
+
+export interface SpeedTrapSnapshot {
+  speedKmh: number;
+  leanAngleDeg: number;
+  longAccG: number;
+  elapsedMs: number;
+}
+
+export interface SpeedTrapResult {
+  label: string;
+  distanceAlongLapM: number;
+  snapshot: SpeedTrapSnapshot;
+  timeDeltaMs: number | null;
+  speedDeltaKmh: number | null;
+}

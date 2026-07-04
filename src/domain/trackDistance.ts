@@ -64,7 +64,7 @@ function interpolateGpsByTime(points: DataPoint[], targetLapMs: number): { lat: 
   };
 }
 
-function interpolateChannel(
+export function interpolateChannel(
   points: DataPoint[],
   targetDist: number,
   channel: keyof Pick<DataPoint, 'velocityKmh' | 'longAccG' | 'leanAngleDeg' | 'heading' | 'heightM'>,

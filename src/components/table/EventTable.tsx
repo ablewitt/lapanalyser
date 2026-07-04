@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { SelectedLap } from '../../hooks/useSelectedLaps';
-import { type EventType } from '../../domain/models';
+import { type EventType, type GpsCoord } from '../../domain/models';
 import { formatKmh, formatDist, formatG } from '../../utils/format';
 
 const EVENT_COLORS: Record<EventType, string> = {
@@ -12,9 +12,11 @@ const EVENT_COLORS: Record<EventType, string> = {
 
 interface Props {
   selectedLaps: SelectedLap[];
+  onRowHover?: (gps: GpsCoord, color: string) => void;
+  onRowLeave?: () => void;
 }
 
-export default function EventTable({ selectedLaps }: Props) {
+export default function EventTable({ selectedLaps, onRowHover, onRowLeave }: Props) {
   const [filter, setFilter] = useState<EventType | 'ALL'>('ALL');
 
   const allEvents = selectedLaps
@@ -55,7 +57,13 @@ export default function EventTable({ selectedLaps }: Props) {
         </thead>
         <tbody>
           {allEvents.map(({ ev, label, color }, i) => (
-            <tr key={i}>
+            <tr
+              key={i}
+              style={{ cursor: onRowHover ? 'pointer' : undefined }}
+              onMouseEnter={() => onRowHover?.(ev.gps, color)}
+              onMouseLeave={onRowLeave}
+              onClick={() => onRowHover?.(ev.gps, color)}
+            >
               <td><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <span style={{ width: 8, height: 8, background: color, borderRadius: 2, display: 'inline-block' }} />
                 {label}

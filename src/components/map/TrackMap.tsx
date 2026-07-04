@@ -1,16 +1,17 @@
-import { useEffect, useRef, useMemo, useState, forwardRef, useImperativeHandle } from 'react';
-import { MapContainer, TileLayer, Polyline, CircleMarker, Popup } from 'react-leaflet';
+import { useEffect, useRef, useMemo, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { SelectedLap } from '../../hooks/useSelectedLaps';
-import type { GpsCoord, SectorBoundary } from '../../domain/models';
+import type { GpsCoord, SectorBoundary, SpeedTrap } from '../../domain/models';
 import { TelemetryCanvasLayer } from './TelemetryCanvasLayer';
 import type { SegmentData } from './TelemetryCanvasLayer';
 import SectorLayer from './SectorLayer';
+import SpeedTrapLayer from './SpeedTrapLayer';
 import styles from './TrackMap.module.css';
 import { formatKmh, formatDist } from '../../utils/format';
-
-type HeatChannel = 'velocityKmh' | 'longAccG' | 'leanAngleDeg';
+import { useUiStore } from '../../store/ui';
+import type { HeatChannel } from '../../store/ui';
 
 interface Props {
   selectedLaps: SelectedLap[];
@@ -18,6 +19,10 @@ interface Props {
   sectorBoundaries?: SectorBoundary[];
   addingSector?: boolean;
   onSectorClick?: (lat: number, lng: number) => void;
+  speedTraps?: SpeedTrap[];
+  addingSpeedTrap?: boolean;
+  onSpeedTrapClick?: (lat: number, lng: number) => void;
+  showVisibilityControls?: boolean;
 }
 
 export interface CursorPosition {
@@ -29,11 +34,34 @@ export interface TrackMapHandle {
   updateCursor(positions: CursorPosition[] | null): void;
 }
 
-const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedLaps, circuitOutline, sectorBoundaries = [], addingSector = false, onSectorClick }, ref) {
-  const [heatChannel, setHeatChannel] = useState<HeatChannel>('velocityKmh');
-  const [baseMap, setBaseMap] = useState<'osm' | 'satellite' | 'dark' | 'off'>('satellite');
+function MapReady({ onReady }: { onReady: (map: L.Map) => void }) {
+  const map = useMap();
+  useEffect(() => { onReady(map); }, [map, onReady]);
+  return null;
+}
+
+const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedLaps, circuitOutline, sectorBoundaries = [], addingSector = false, onSectorClick, speedTraps = [], addingSpeedTrap = false, onSpeedTrapClick, showVisibilityControls = false }, ref) {
+  const baseMap = useUiStore(s => s.mapBaseLayer);
+  const setBaseMap = useUiStore(s => s.setMapBaseLayer);
+  const heatChannel = useUiStore(s => s.mapHeatChannel);
+  const setHeatChannel = useUiStore(s => s.setMapHeatChannel);
+  const storedShowSectors = useUiStore(s => s.mapShowSectors);
+  const storedShowEvents = useUiStore(s => s.mapShowEvents);
+  const storedShowTraps = useUiStore(s => s.mapShowTraps);
+  const setMapShowSectors = useUiStore(s => s.setMapShowSectors);
+  const setMapShowEvents = useUiStore(s => s.setMapShowEvents);
+  const setMapShowTraps = useUiStore(s => s.setMapShowTraps);
+  const showSectors = showVisibilityControls ? storedShowSectors : true;
+  const showEvents = showVisibilityControls ? storedShowEvents : true;
+  const showSpeedTraps = showVisibilityControls ? storedShowTraps : true;
   const canvasLayerRef = useRef<TelemetryCanvasLayer | null>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+
+  const handleMapReady = useCallback((m: L.Map) => {
+    mapRef.current = m;
+    setMapInstance(m);
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const cursorMarkersRef = useRef<L.CircleMarker[]>([]);
   const markerTargetsRef = useRef<Array<{ lat: number; lng: number }>>([]);
@@ -51,7 +79,7 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
   }, [referenceLap]);
 
   const segments: SegmentData[] = useMemo(() => {
-    if (!referenceLap) return [];
+    if (!referenceLap || heatChannel === 'off') return [];
     const pts = referenceLap.points;
     const values = pts.map(p => p[heatChannel] as number);
     const min = Math.min(...values);
@@ -65,14 +93,14 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
   }, [referenceLap, heatChannel]);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapInstance) return;
     if (!canvasLayerRef.current) {
       const layer = new TelemetryCanvasLayer();
-      layer.addTo(mapRef.current);
+      layer.addTo(mapInstance);
       canvasLayerRef.current = layer;
     }
     canvasLayerRef.current.setSegments(segments);
-  }, [segments]);
+  }, [segments, mapInstance]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -187,7 +215,7 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
   }), []);
 
   return (
-    <div className={styles.container} ref={containerRef} style={addingSector ? { cursor: 'crosshair' } : undefined}>
+    <div className={styles.container} ref={containerRef} style={(addingSector || addingSpeedTrap) ? { cursor: 'crosshair' } : undefined}>
       <div className={styles.controls}>
         <span className={styles.label}>Base:</span>
         {(['off', 'dark', 'osm', 'satellite'] as const).map(bm => (
@@ -197,23 +225,32 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
         ))}
         <span className={styles.divider} />
         <span className={styles.label}>Heatmap:</span>
-        {(['velocityKmh', 'longAccG', 'leanAngleDeg'] as HeatChannel[]).map(ch => (
+        {(['off', 'velocityKmh', 'longAccG', 'leanAngleDeg'] as HeatChannel[]).map(ch => (
           <button
             key={ch}
             className={heatChannel === ch ? 'active' : ''}
             onClick={() => setHeatChannel(ch)}
           >
-            {ch === 'velocityKmh' ? 'Speed' : ch === 'longAccG' ? 'Long Acc' : 'Lean Angle'}
+            {ch === 'off' ? 'Off' : ch === 'velocityKmh' ? 'Speed' : ch === 'longAccG' ? 'Long Acc' : 'Lean Angle'}
           </button>
         ))}
+        {showVisibilityControls && (
+          <>
+            <span className={styles.divider} />
+            <span className={styles.label}>Show:</span>
+            <button className={storedShowSectors ? 'active' : ''} onClick={() => setMapShowSectors(!storedShowSectors)}>Sectors</button>
+            <button className={storedShowEvents ? 'active' : ''} onClick={() => setMapShowEvents(!storedShowEvents)}>Events</button>
+            <button className={storedShowTraps ? 'active' : ''} onClick={() => setMapShowTraps(!storedShowTraps)}>Traps</button>
+          </>
+        )}
       </div>
       <MapContainer
         center={center}
         zoom={16}
         maxZoom={22}
         style={{ height: 'calc(100% - 40px)', width: '100%' }}
-        ref={mapRef as any}
       >
+        <MapReady onReady={handleMapReady} />
         {baseMap === 'osm' && (
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -248,7 +285,7 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
             pathOptions={{ color, weight: 2, opacity: 0.65 }}
           />
         ))}
-        {selectedLaps.flatMap(({ lap }) =>
+        {showEvents && selectedLaps.flatMap(({ lap }) =>
           lap.events.map((ev, i) => (
             <CircleMarker
               key={`${lap.id}-${i}`}
@@ -271,11 +308,20 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
             </CircleMarker>
           ))
         )}
-        <SectorLayer
-          boundaries={sectorBoundaries}
-          addingSector={addingSector}
-          onAddSector={onSectorClick ?? (() => {})}
-        />
+        {showSectors && (
+          <SectorLayer
+            boundaries={sectorBoundaries}
+            addingSector={addingSector}
+            onAddSector={onSectorClick ?? (() => {})}
+          />
+        )}
+        {showSpeedTraps && (
+          <SpeedTrapLayer
+            traps={speedTraps}
+            addingSpeedTrap={addingSpeedTrap}
+            onAddTrap={onSpeedTrapClick ?? (() => {})}
+          />
+        )}
       </MapContainer>
     </div>
   );

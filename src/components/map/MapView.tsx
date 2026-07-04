@@ -3,25 +3,30 @@ import styles from './MapView.module.css';
 import { useCombinedLaps } from '../../hooks/useCombinedLaps';
 import { useSessionsStore } from '../../store/sessions';
 import { useSectorsStore } from '../../store/sectors';
-import { useSessionCircuit } from '../../hooks/useSessionCircuit';
+import { useSpeedTrapsStore } from '../../store/speedTraps';
 import { nearestTrackPoint } from '../../domain/sectors';
-import TrackMap from './TrackMap';
+import AppMap from './AppMap';
 
 export default function MapView() {
   const selectedLaps = useCombinedLaps();
-  const firstSession = useSessionsStore(s => s.sessions[0] ?? null);
-  const { points: circuitOutline } = useSessionCircuit(firstSession);
-
+  const allSessions = useSessionsStore(s => s.sessions);
   const boundaries = useSectorsStore(s => s.boundaries);
   const addBoundary = useSectorsStore(s => s.addBoundary);
   const clearBoundaries = useSectorsStore(s => s.clearBoundaries);
+  const traps = useSpeedTrapsStore(s => s.traps);
+  const addTrap = useSpeedTrapsStore(s => s.addTrap);
+  const clearTraps = useSpeedTrapsStore(s => s.clearTraps);
 
   const [addingSector, setAddingSector] = useState(false);
+  const [addingSpeedTrap, setAddingSpeedTrap] = useState(false);
 
-  const allSessions = useSessionsStore(s => s.sessions);
+  const getTrackPoints = useCallback(() =>
+    selectedLaps[0]?.lap.points ?? allSessions.flatMap(s => s.laps)[0]?.points,
+    [selectedLaps, allSessions],
+  );
 
   const handleSectorClick = useCallback((lat: number, lng: number) => {
-    const points = selectedLaps[0]?.lap.points ?? allSessions.flatMap(s => s.laps)[0]?.points;
+    const points = getTrackPoints();
     if (!points) return;
     const pt = nearestTrackPoint(lat, lng, points);
     addBoundary({
@@ -30,7 +35,29 @@ export default function MapView() {
       gps: pt.gps,
       heading: pt.heading,
     });
-  }, [selectedLaps, allSessions, addBoundary]);
+  }, [getTrackPoints, addBoundary]);
+
+  const handleSpeedTrapClick = useCallback((lat: number, lng: number) => {
+    const points = getTrackPoints();
+    if (!points) return;
+    const pt = nearestTrackPoint(lat, lng, points);
+    addTrap({
+      id: crypto.randomUUID(),
+      distanceAlongLapM: pt.distanceAlongLapM,
+      gps: pt.gps,
+      heading: pt.heading,
+    });
+  }, [getTrackPoints, addTrap]);
+
+  const toggleSector = useCallback(() => {
+    setAddingSector(v => !v);
+    setAddingSpeedTrap(false);
+  }, []);
+
+  const toggleSpeedTrap = useCallback(() => {
+    setAddingSpeedTrap(v => !v);
+    setAddingSector(false);
+  }, []);
 
   if (selectedLaps.length === 0) {
     return (
@@ -45,7 +72,7 @@ export default function MapView() {
       <div className={styles.sectorToolbar}>
         <button
           className={addingSector ? 'active' : ''}
-          onClick={() => setAddingSector(v => !v)}
+          onClick={toggleSector}
           title="Click near the track to place a sector boundary"
         >
           + Sector
@@ -53,14 +80,23 @@ export default function MapView() {
         {boundaries.length > 0 && (
           <button onClick={clearBoundaries}>Clear Sectors</button>
         )}
+        <button
+          className={addingSpeedTrap ? 'active' : ''}
+          onClick={toggleSpeedTrap}
+          title="Click near the track to place a speed trap"
+        >
+          + Speed Trap
+        </button>
+        {traps.length > 0 && (
+          <button onClick={clearTraps}>Clear Traps</button>
+        )}
       </div>
       <div style={{ flex: '1 1 0', minHeight: 0 }}>
-        <TrackMap
-          selectedLaps={selectedLaps}
-          circuitOutline={circuitOutline}
-          sectorBoundaries={boundaries}
+        <AppMap
           addingSector={addingSector}
           onSectorClick={handleSectorClick}
+          addingSpeedTrap={addingSpeedTrap}
+          onSpeedTrapClick={handleSpeedTrapClick}
         />
       </div>
     </div>

@@ -4,10 +4,12 @@ import { useSelectionStore } from '../../store/selection';
 import { useSectorsStore } from '../../store/sectors';
 import { computeSectorResults } from '../../domain/sectors';
 import { formatMs } from '../../utils/format';
-import type { SectorResult } from '../../domain/models';
+import type { GpsCoord, SectorResult } from '../../domain/models';
 
 interface Props {
   selectedLaps: SelectedLap[];
+  onSectorHover?: (gps: GpsCoord, color: string) => void;
+  onSectorLeave?: () => void;
 }
 
 function formatDeltaMs(deltaMs: number): string {
@@ -18,7 +20,7 @@ function formatDeltaMs(deltaMs: number): string {
 
 const FASTEST_STYLE: React.CSSProperties = { background: 'rgba(60,180,75,0.18)', fontWeight: 600 };
 
-export default function SectorSplitTable({ selectedLaps }: Props) {
+export default function SectorSplitTable({ selectedLaps, onSectorHover, onSectorLeave }: Props) {
   const boundaries = useSectorsStore(s => s.boundaries);
   const referenceLapId = useSelectionStore(s => s.referenceLapId);
 
@@ -50,12 +52,19 @@ export default function SectorSplitTable({ selectedLaps }: Props) {
     Math.min(...lapResults.map(r => r[si]?.timeMs ?? Infinity)),
   );
 
-  const renderSectorCells = (results: SectorResult[], lapTimeMs: number, isRef: boolean) =>
+  const renderSectorCells = (results: SectorResult[], lapTimeMs: number, isRef: boolean, lapColor: string, lapPoints: { gps: GpsCoord }[]) =>
     results.map((r, si) => {
       const isFastest = r.timeMs === fastestSectorMs[si];
       const delta = isRef ? null : r.timeMs - refResults[si].timeMs;
+      const sectorStartGps: GpsCoord = si === 0 ? lapPoints[0].gps : boundaries[si - 1].gps;
       return (
-        <td key={r.label} style={{ fontVariantNumeric: 'tabular-nums', ...(isFastest ? FASTEST_STYLE : undefined) }}>
+        <td
+          key={r.label}
+          style={{ fontVariantNumeric: 'tabular-nums', cursor: onSectorHover ? 'pointer' : undefined, ...(isFastest ? FASTEST_STYLE : undefined) }}
+          onMouseEnter={() => onSectorHover?.(sectorStartGps, lapColor)}
+          onMouseLeave={onSectorLeave}
+          onClick={() => onSectorHover?.(sectorStartGps, lapColor)}
+        >
           {formatMs(r.timeMs)}
           {delta !== null && (
             <span style={{ marginLeft: 6, fontSize: 11, color: delta <= 0 ? 'var(--success)' : 'var(--danger)' }}>
@@ -93,7 +102,7 @@ export default function SectorSplitTable({ selectedLaps }: Props) {
               <td style={{ fontVariantNumeric: 'tabular-nums', color: isRef ? 'var(--text-dim)' : lapDelta <= 0 ? 'var(--success)' : 'var(--danger)' }}>
                 {isRef ? '—' : formatDeltaMs(lapDelta)}
               </td>
-              {renderSectorCells(lapResults[i], lap.lapTimeMs, isRef)}
+              {renderSectorCells(lapResults[i], lap.lapTimeMs, isRef, color, lap.points)}
             </tr>
           );
         })}

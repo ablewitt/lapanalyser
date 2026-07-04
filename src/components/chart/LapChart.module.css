@@ -55,3 +55,33 @@
   font-weight: 600;
   letter-spacing: 0.04em;
 }
+
+.deltaValue {
+  color: var(--text-dim);
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.deltaBtn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  line-height: 1.4;
+  margin-left: 6px;
+}
+
+.deltaBtn:hover {
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+
+.deltaBtnActive {
+  background: var(--accent, #4f8ef7);
+  border-color: var(--accent, #4f8ef7);
+  color: #fff;
+}

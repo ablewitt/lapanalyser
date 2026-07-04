@@ -1,3 +1,23 @@
-.wrap { display: flex; flex-direction: column; height: 100%; }
-.subTabs { display: flex; gap: 4px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.wrap { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+.mapPane {
+  /* height set via inline style */
+  min-height: 100px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.mapResizeHandle {
+  flex-shrink: 0;
+  height: 5px;
+  background: var(--border);
+  cursor: ns-resize;
+  transition: background 0.15s;
+}
+.mapResizeHandle:hover,
+.mapResizeHandle:active {
+  background: var(--accent);
+}
+
+.subTabs { display: flex; gap: 4px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
 .content { flex: 1; overflow: auto; padding: 12px; }

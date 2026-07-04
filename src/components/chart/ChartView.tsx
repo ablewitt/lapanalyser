@@ -2,12 +2,12 @@ import { useRef, useCallback, useState, useEffect, useMemo, type RefCallback } f
 import styles from './ChartView.module.css';
 import { useCombinedLaps } from '../../hooks/useCombinedLaps';
 import { useSelectionStore } from '../../store/selection';
+import { useUiStore } from '../../store/ui';
+import { useSectorsStore } from '../../store/sectors';
 import { useDistanceGrid, useTimeGrid } from '../../hooks/useDistanceGrid';
-import { useSessionsStore } from '../../store/sessions';
-import { useSessionCircuit } from '../../hooks/useSessionCircuit';
 import LapChart from './LapChart';
 import type { LapChartHandle } from './LapChart';
-import TrackMap from '../map/TrackMap';
+import AppMap from '../map/AppMap';
 import type { TrackMapHandle, CursorPosition } from '../map/TrackMap';
 import ZoomOverview from './ZoomOverview';
 import type { DataPoint } from '../../domain/models';
@@ -56,9 +56,11 @@ function gpsAtLapMs(points: DataPoint[], targetLapMs: number) {
 
 export default function ChartView() {
   const selectedLaps = useCombinedLaps();
-  const firstSession = useSessionsStore(s => s.sessions[0] ?? null);
-  const { points: circuitOutline } = useSessionCircuit(firstSession);
   const comparisonMode = useSelectionStore(s => s.comparisonMode);
+  const sectorBoundaries = useSectorsStore(s => s.boundaries);
+  const sectorLines = comparisonMode === 'distance'
+    ? sectorBoundaries.map(b => b.distanceAlongLapM)
+    : undefined;
   const distanceGrids = useDistanceGrid(selectedLaps);
   const timeGrids = useTimeGrid(selectedLaps);
 
@@ -66,8 +68,31 @@ export default function ChartView() {
   const mapRef = useRef<TrackMapHandle | null>(null);
   const [chartAreaEl, setChartAreaEl] = useState<HTMLDivElement | null>(null);
 
-  const [zoomDomain, setZoomDomain] = useState<[number, number] | null>(null);
+  const zoomDomain = useUiStore(s => s.chartZoomDomain);
+  const setZoomDomain = useUiStore(s => s.setChartZoomDomain);
+
+  // Reset zoom when comparison mode changes (distance ↔ time units are incompatible)
+  const prevModeRef = useRef(comparisonMode);
+  useEffect(() => {
+    if (prevModeRef.current === comparisonMode) return;
+    prevModeRef.current = comparisonMode;
+    setZoomDomain(null);
+  }, [comparisonMode]);
+
+  // Reset zoom when all laps are deselected
+  useEffect(() => {
+    if (selectedLaps.length === 0) setZoomDomain(null);
+  }, [selectedLaps.length]);
+
   const [mapHeight, setMapHeight] = useState(280);
+  const [deltaChannels, setDeltaChannels] = useState<Set<string>>(new Set());
+  const toggleDelta = useCallback((key: string) => {
+    setDeltaChannels(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }, []);
   const mapHeightRef = useRef(mapHeight);
   mapHeightRef.current = mapHeight;
   const [resizeHandleEl, setResizeHandleEl] = useState<HTMLDivElement | null>(null);
@@ -106,7 +131,6 @@ export default function ChartView() {
   const xScaleRef = useRef(1);
   xScaleRef.current = comparisonMode === 'time' ? 1 / 1000 : 1;
 
-  useEffect(() => { setZoomDomain(null); }, [selectedLaps, comparisonMode]);
 
   useEffect(() => {
     const el = chartAreaEl;
@@ -175,10 +199,11 @@ export default function ChartView() {
     const gridIdx = Math.min(idx * stride, xValues.length - 1);
     const targetValue = xValues[gridIdx];
 
+    const maxDist = xValues[xValues.length - 1];
     const positions: CursorPosition[] = laps.map(({ lap, color }) => ({
       color,
       gps: mode === 'distance'
-        ? gpsAtDistance(lap.points, targetValue)
+        ? gpsAtDistance(lap.points, (targetValue / maxDist) * lap.trackLengthM)
         : gpsAtLapMs(lap.points, targetValue),
     }));
     mapRef.current?.updateCursor(positions);
@@ -220,7 +245,7 @@ export default function ChartView() {
   return (
     <div className={styles.wrap}>
       <div className={styles.mapPane} style={{ height: mapHeight }}>
-        <TrackMap ref={mapRef} selectedLaps={selectedLaps} circuitOutline={circuitOutline} />
+        <AppMap ref={mapRef} visibilityControls />
       </div>
       <div
         className={styles.mapResizeHandle}
@@ -250,24 +275,30 @@ export default function ChartView() {
             </div>
           )}
           <div className={styles.charts} ref={setChartAreaEl as RefCallback<HTMLDivElement>}>
-            {channels.map((ch, ci) => (
-              <LapChart
-                key={ch.key}
-                ref={(el) => { chartRefs.current[ci] = el; }}
-                grids={grids as any[]}
-                xKey={xKey}
-                xScale={xScale}
-                yKey={ch.key}
-                label={ch.label}
-                unit={ch.unit}
-                domain={(ch as any).domain}
-                xLabel={xLabel}
-                lapStyles={lapStyles}
-                zoomDomain={zoomDomain}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-              />
-            ))}
+            {channels.map((ch, ci) => {
+              const isBase = BASE_CHANNELS.some(b => b.key === ch.key);
+              return (
+                <LapChart
+                  key={ch.key}
+                  ref={(el) => { chartRefs.current[ci] = el; }}
+                  grids={grids as any[]}
+                  xKey={xKey}
+                  xScale={xScale}
+                  yKey={ch.key}
+                  label={ch.label}
+                  unit={ch.unit}
+                  domain={(ch as any).domain}
+                  xLabel={xLabel}
+                  lapStyles={lapStyles}
+                  zoomDomain={zoomDomain}
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                  deltaMode={isBase ? deltaChannels.has(ch.key) : undefined}
+                  onToggleDelta={isBase ? () => toggleDelta(ch.key) : undefined}
+                  sectorLines={sectorLines}
+                />
+              );
+            })}
           </div>
         </>
       )}
