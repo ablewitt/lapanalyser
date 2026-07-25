@@ -85,6 +85,7 @@ export interface Lap {
 export interface Session {
   id: string;
   filename: string;
+  displayName?: string | null;
   venue: string;
   dateRecorded: Date;
   gate: Gate;

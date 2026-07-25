@@ -52,7 +52,7 @@ export default function SectorSplitTable({ selectedLaps, onSectorHover, onSector
     Math.min(...lapResults.map(r => r[si]?.timeMs ?? Infinity)),
   );
 
-  const renderSectorCells = (results: SectorResult[], lapTimeMs: number, isRef: boolean, lapColor: string, lapPoints: { gps: GpsCoord }[]) =>
+  const renderSectorCells = (results: SectorResult[], _lapTimeMs: number, isRef: boolean, lapColor: string, lapPoints: { gps: GpsCoord }[]) =>
     results.map((r, si) => {
       const isFastest = r.timeMs === fastestSectorMs[si];
       const delta = isRef ? null : r.timeMs - refResults[si].timeMs;

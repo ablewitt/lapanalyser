@@ -4,12 +4,14 @@ import { useCombinedLaps } from '../../hooks/useCombinedLaps';
 import { useSessionsStore } from '../../store/sessions';
 import { useSectorsStore } from '../../store/sectors';
 import { useSpeedTrapsStore } from '../../store/speedTraps';
+import { useSessionCircuit } from '../../hooks/useSessionCircuit';
 import { nearestTrackPoint } from '../../domain/sectors';
 import AppMap from './AppMap';
+import TrackConfigControls from './TrackConfigControls';
 
 export default function MapView() {
   const selectedLaps = useCombinedLaps();
-  const allSessions = useSessionsStore(s => s.sessions);
+  const sessions = useSessionsStore(s => s.sessions);
   const boundaries = useSectorsStore(s => s.boundaries);
   const addBoundary = useSectorsStore(s => s.addBoundary);
   const clearBoundaries = useSectorsStore(s => s.clearBoundaries);
@@ -20,9 +22,14 @@ export default function MapView() {
   const [addingSector, setAddingSector] = useState(false);
   const [addingSpeedTrap, setAddingSpeedTrap] = useState(false);
 
+  // Detect circuit from the first selected (or loaded) session
+  const firstSessionId = selectedLaps[0]?.lap.sessionId ?? sessions[0]?.id ?? null;
+  const firstSession = sessions.find(s => s.id === firstSessionId) ?? null;
+  const { active: activeCircuit } = useSessionCircuit(firstSession);
+
   const getTrackPoints = useCallback(() =>
-    selectedLaps[0]?.lap.points ?? allSessions.flatMap(s => s.laps)[0]?.points,
-    [selectedLaps, allSessions],
+    selectedLaps[0]?.lap.points ?? sessions.flatMap(s => s.laps)[0]?.points,
+    [selectedLaps, sessions],
   );
 
   const handleSectorClick = useCallback((lat: number, lng: number) => {
@@ -90,6 +97,7 @@ export default function MapView() {
         {traps.length > 0 && (
           <button onClick={clearTraps}>Clear Traps</button>
         )}
+        <TrackConfigControls circuitName={activeCircuit?.name ?? null} />
       </div>
       <div style={{ flex: '1 1 0', minHeight: 0 }}>
         <AppMap

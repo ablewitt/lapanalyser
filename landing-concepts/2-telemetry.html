@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LapAnalyser — Telemetry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#242838; --border:#2e3347;
+    --text:#e2e8f0; --dim:#7c8db5; --accent:#4f8ef7; --accent2:#6ba3ff;
+    --green:#3cb44b; --amber:#f5a524;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.55}
+  .mono{font-family:'JetBrains Mono',monospace}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 26px}
+  h1,h2,h3{letter-spacing:-.02em}
+
+  /* grid backdrop */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+    background-size:48px 48px;opacity:.18;mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000,transparent 75%)}
+  main,nav,footer{position:relative;z-index:1}
+
+  nav{border-bottom:1px solid var(--border);background:rgba(15,17,23,.8);backdrop-filter:blur(10px);position:sticky;top:0;z-index:50}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px}
+  .brand .m{width:22px;height:22px;border:2px solid var(--accent);border-radius:5px;display:grid;place-items:center;font-size:11px;color:var(--accent)}
+  .nav-links{display:flex;gap:26px;align-items:center;font-size:13.5px}
+  .nav-links a{color:var(--dim);transition:color .18s}
+  .nav-links a:hover{color:var(--text)}
+  .btn{display:inline-flex;align-items:center;gap:7px;border-radius:5px;padding:9px 16px;font-size:13.5px;font-weight:600;transition:.18s;border:1px solid transparent;cursor:pointer}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent2)}
+  .btn-ghost{border-color:var(--border);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent)}
+
+  .hero{padding:84px 0 60px;text-align:center}
+  .badge{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--border);background:var(--surface);border-radius:100px;padding:6px 14px;font-size:12px;color:var(--dim);margin-bottom:28px}
+  .badge .live{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green)}
+  .hero h1{font-size:clamp(38px,6vw,68px);font-weight:700;line-height:1.05;max-width:900px;margin:0 auto}
+  .hero h1 .hl{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{max-width:600px;margin:24px auto 34px;font-size:18px;color:var(--dim)}
+  .hero-cta{display:flex;gap:12px;justify-content:center}
+
+  /* dashboard mock */
+  .dash{margin:64px auto 0;max-width:1000px;border:1px solid var(--border);border-radius:12px 12px 0 0;background:var(--surface);overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.5)}
+  .dash-bar{display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .dash-bar .path{margin-left:14px;font-size:12px;color:var(--dim)}
+  .dash-body{display:grid;grid-template-columns:190px 1fr;min-height:340px}
+  .dash-side{border-right:1px solid var(--border);padding:14px}
+  .side-item{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:6px;font-size:13px;color:var(--dim)}
+  .side-item.on{background:var(--surface2);color:var(--text)}
+  .side-item .sw{width:9px;height:9px;border-radius:2px}
+  .dash-main{padding:20px}
+  .metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+  .metric{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px}
+  .metric span{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+  .metric b{display:block;font-size:22px;margin-top:5px}
+  .metric b.g{color:var(--green)} .metric b.a{color:var(--amber)}
+  .chart{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px}
+  .chart svg{width:100%;height:150px;display:block}
+
+  section{padding:80px 0}
+  .sec-head{max-width:620px;margin:0 auto 50px;text-align:center}
+  .sec-head h2{font-size:clamp(28px,4vw,42px);font-weight:700}
+  .sec-head p{color:var(--dim);margin-top:12px;font-size:16.5px}
+  .tag{font-family:'JetBrains Mono';font-size:12px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase}
+
+  .disc{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .dc{border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:22px;transition:.2s}
+  .dc:hover{border-color:var(--accent);transform:translateY(-4px)}
+  .dc .k{font-family:'JetBrains Mono';font-size:12px;color:var(--dim)}
+  .dc h3{font-size:17px;margin:12px 0 6px}
+  .dc p{font-size:13.5px;color:var(--dim)}
+
+  .feat{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .fc{background:var(--bg);padding:32px}
+  .fc h3{font-size:19px;margin:10px 0 8px;display:flex;align-items:center;gap:10px}
+  .fc h3 .num{font-family:'JetBrains Mono';font-size:13px;color:var(--accent)}
+  .fc p{color:var(--dim);font-size:14.5px}
+
+  .cta{border:1px solid var(--border);border-radius:14px;background:linear-gradient(160deg,var(--surface),var(--bg));padding:54px;text-align:center;position:relative;overflow:hidden}
+  .cta::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 120%,rgba(79,142,247,.25),transparent 60%)}
+  .cta h2{font-size:clamp(26px,4vw,40px);position:relative}
+  .cta p{color:var(--dim);margin:14px 0 26px;position:relative}
+  .cta .btn{position:relative}
+
+  footer{border-top:1px solid var(--border);padding:40px 0 56px;font-size:13.5px;color:var(--dim)}
+  .fg{display:flex;justify-content:space-between;flex-wrap:wrap;gap:22px}
+  .fg a{color:var(--dim);display:block;margin:7px 0}
+  .fg a:hover{color:var(--text)}
+  @media(max-width:860px){.dash-body,.disc,.feat,.metric-row{grid-template-columns:1fr 1fr}.nav-links{display:none}.dash-side{display:none}.dash-body{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav><div class="wrap nav-inner">
+  <div class="brand"><span class="m">▚</span>LapAnalyser</div>
+  <div class="nav-links">
+    <a href="#disciplines">Disciplines</a><a href="#features">Features</a>
+    <a href="/docs">Docs</a><a href="/support">Support</a>
+    <a href="/auth" class="btn btn-ghost">Log in</a>
+    <a href="/auth?mode=signup" class="btn btn-primary">Sign up free</a>
+  </div>
+</div></nav>
+
+<main>
+<header class="hero"><div class="wrap">
+  <div class="badge"><span class="live"></span><span class="mono">RaceBox VBO · 25Hz GPS</span></div>
+  <h1>Telemetry that <span class="hl">tells you where</span> the lap time went.</h1>
+  <p>Upload your session, and LapAnalyser splits every lap, overlays every rider, and maps every corner — braking, lean, speed and sectors, side by side.</p>
+  <div class="hero-cta">
+    <a href="/auth?mode=signup" class="btn btn-primary">Start analysing →</a>
+    <a href="/docs" class="btn btn-ghost">View documentation</a>
+  </div>
+
+  <div class="dash">
+    <div class="dash-bar">
+      <span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span>
+      <span class="path mono">morgan-park · session-07-04 · 18 laps</span>
+    </div>
+    <div class="dash-body">
+      <div class="dash-side">
+        <div class="side-item on"><span class="sw" style="background:var(--accent)"></span>Lap 14 · 1:08.44</div>
+        <div class="side-item"><span class="sw" style="background:var(--amber)"></span>Lap 09 · 1:08.91</div>
+        <div class="side-item"><span class="sw" style="background:var(--green)"></span>Teammate · 1:08.61</div>
+        <div class="side-item"><span class="sw" style="background:#b06bff"></span>Best theory · 1:07.9</div>
+        <div style="border-top:1px solid var(--border);margin:12px -14px 12px"></div>
+        <div class="side-item">◍ Speed heat map</div>
+        <div class="side-item">◍ Lean overlay</div>
+        <div class="side-item">◍ Speed traps</div>
+      </div>
+      <div class="dash-main">
+        <div class="metric-row">
+          <div class="metric"><span>Lap</span><b class="mono">1:08.44</b></div>
+          <div class="metric"><span>Δ Best</span><b class="mono g">-0.17</b></div>
+          <div class="metric"><span>Top speed</span><b class="mono">184.6</b></div>
+          <div class="metric"><span>Max lean</span><b class="mono a">54°</b></div>
+        </div>
+        <div class="chart">
+          <svg viewBox="0 0 600 150" preserveAspectRatio="none">
+            <g stroke="var(--border)" stroke-width="1">
+              <line x1="0" y1="38" x2="600" y2="38"/><line x1="0" y1="75" x2="600" y2="75"/><line x1="0" y1="112" x2="600" y2="112"/>
+            </g>
+            <path d="M0 120 C60 40 120 60 180 90 S300 130 360 60 480 30 540 80 600 60" fill="none" stroke="#4f8ef7" stroke-width="2.5"/>
+            <path d="M0 128 C60 70 120 78 180 104 S300 140 360 88 480 66 540 100 600 86" fill="none" stroke="#f5a524" stroke-width="2" stroke-dasharray="5 4" opacity=".85"/>
+            <path d="M0 132 C60 90 120 92 180 112 S300 145 360 100 480 82 540 112 600 100" fill="none" stroke="#3cb44b" stroke-width="1.8" opacity=".7"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></header>
+
+<section id="disciplines"><div class="wrap">
+  <div class="sec-head">
+    <div class="tag">// works with</div>
+    <h2>Any sport with a lap time.</h2>
+    <p>The parser doesn't care what's under the GPS. If it laps, it analyses.</p>
+  </div>
+  <div class="disc">
+    <div class="dc"><div class="k">[ 01 ]</div><h3>Superbike / Road</h3><p>Lean, trail-braking, corner exit — the full riding picture.</p></div>
+    <div class="dc"><div class="k">[ 02 ]</div><h3>Motocross</h3><p>Rhythm sections, line choice and consistency across motos.</p></div>
+    <div class="dc"><div class="k">[ 03 ]</div><h3>Cars / Karts</h3><p>Minimum speeds, braking traces and sector deltas.</p></div>  </div>
+</div></section>
+
+<section id="features" style="padding-top:20px"><div class="wrap">
+  <div class="sec-head"><div class="tag">// capabilities</div><h2>Precision, not guesswork.</h2></div>
+  <div class="feat">
+    <div class="fc"><h3><span class="num">01</span> Automatic lap detection</h3><p>Line-segment gate crossing splits your session into clean laps the moment the file lands. Nothing to trim.</p></div>
+    <div class="fc"><h3><span class="num">02</span> Multi-rider comparison</h3><p>Stack laps from any rider or session and read the running delta corner by corner.</p></div>
+    <div class="fc"><h3><span class="num">03</span> Custom sectors & speed traps</h3><p>Draw sectors and traps per track, save named configs, share them or set a default.</p></div>
+    <div class="fc"><h3><span class="num">04</span> Heat-mapped track view</h3><p>Speed and lean draped over the real circuit line on an interactive map.</p></div>
+    <div class="fc"><h3><span class="num">05</span> Share private → public</h3><p>Owner-only, shared with named users, or public. Enforced end to end.</p></div>
+    <div class="fc"><h3><span class="num">06</span> Settings that follow you</h3><p>Map layer, overlays and heat maps saved to your account and restored anywhere.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="cta">
+    <h2>Read the data. Beat the clock.</h2>
+    <p>Free to start. Bring the RaceBox you already own.</p>
+    <a href="/auth?mode=signup" class="btn btn-primary">Create free account →</a>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap fg">
+  <div style="max-width:260px"><div class="brand" style="margin-bottom:10px"><span class="m">▚</span>LapAnalyser</div><p>Precision lap analysis for every discipline.</p></div>
+  <div style="display:flex;gap:48px">
+    <div><strong style="color:var(--text)">Product</strong><a href="#features">Features</a><a href="#disciplines">Disciplines</a><a href="/auth">Log in</a></div>
+    <div><strong style="color:var(--text)">Resources</strong><a href="/docs">Documentation</a><a href="/support">Support</a><a href="/docs/quickstart">Quick start</a></div>
+  </div>
+</div></footer>
+</body>
+</html>

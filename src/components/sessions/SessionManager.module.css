@@ -1,0 +1,295 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: min(900px, 95vw);
+  height: min(680px, 90vh);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.count {
+  color: var(--text-dim);
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--text-dim);
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.searchWrap {
+  position: relative;
+  flex: 1;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.search {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px 6px 28px;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.search:focus { border-color: var(--accent); }
+
+.sortLabel {
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.sortSelect {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 8px;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.filterBtn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.filterBtnActive {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.dirBtn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 13px;
+  min-width: 30px;
+}
+
+.tableWrap {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  padding: 8px 12px;
+  text-align: left;
+  color: var(--text-dim);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.resizeHandle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.resizeHandle:hover,
+.resizeHandle:active {
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+.table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tr:hover td { background: var(--surface2); }
+
+.table tr.loaded td { background: rgba(79, 142, 247, 0.05); }
+.table tr.loaded:hover td { background: rgba(79, 142, 247, 0.12); }
+
+.table tr.deleting td { background: rgba(230, 76, 76, 0.08); }
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  display: inline-block;
+}
+
+.statusDot.active { background: var(--success); }
+
+.nameCell {
+  overflow: hidden;
+}
+
+.nameText {
+  cursor: text;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 3px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+.nameText:hover { background: var(--surface2); }
+.nameReadOnly { cursor: default; }
+.nameReadOnly:hover { background: none; }
+
+.ownerLabel {
+  display: block;
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nameInput {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 2px 6px;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.dim { color: var(--text-dim); }
+
+.actions {
+  display: flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.loadBtn {
+  font-size: 11px;
+  padding: 3px 10px;
+}
+
+.unloadBtn {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.unloadBtn:hover { background: var(--accent); color: #fff; }
+
+.deleteBtn {
+  font-size: 11px;
+  padding: 3px 8px;
+  color: var(--text-dim);
+}
+
+.deleteBtn:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+.confirmDelete {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #ff9a9a;
+}
+
+.confirmDeleteBtn {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-dim);
+}
+
+.loading {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-dim);
+}

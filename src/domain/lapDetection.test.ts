@@ -13,44 +13,6 @@ function makeGate(lat: number, lng: number, halfWidthM = 10): Gate {
   };
 }
 
-/** Build a circuit: N laps of a straight 500 m course, crossing gate at dist=0. */
-function makeCircuitPoints(numLaps: number, lapTimeMs = 60_000, speedKmh = 100): DataPoint[] {
-  const trackM = (speedKmh / 3.6) * (lapTimeMs / 1000);
-  const dtMs = 100;
-  const dxM = (speedKmh / 3.6) * (dtMs / 1000);
-  const ptsPerLap = Math.ceil(trackM / dxM);
-  const points: DataPoint[] = [];
-  let totalDist = 0;
-  let totalMs = 0;
-
-  // A bit past the gate so we cross it going forward on each lap
-  const gateLat = ORIGIN.lat + 0.00001; // just north of origin
-  const gateLng = ORIGIN.lng;
-
-  for (let lap = 0; lap < numLaps + 1; lap++) {
-    for (let i = 0; i < ptsPerLap; i++) {
-      // Move north (increasing lat) to simulate going around the track
-      const pLat = ORIGIN.lat + ((totalDist % trackM) / trackM) * 0.002;
-      points.push({
-        elapsedMs: totalMs,
-        distanceM: totalDist,
-        distanceAlongLapM: totalDist,
-        gps: { lat: pLat, lng: gateLng },
-        velocityKmh: speedKmh,
-        heading: 0,
-        heightM: 100,
-        longAccG: 0, vertAccG: 0,
-        xGyro: 0, yGyro: 0, zGyro: 0,
-        leanAngleDeg: 0,
-        satellites: 10,
-      });
-      totalDist += dxM;
-      totalMs += dtMs;
-    }
-  }
-  return points;
-}
-
 describe('detectLapCrossings', () => {
   it('returns empty for points that never cross the gate', () => {
     const points: DataPoint[] = Array.from({ length: 20 }, (_, i) => ({
@@ -98,9 +60,9 @@ describe('detectLapCrossings', () => {
 
 describe('assembleLaps', () => {
   it('returns empty for fewer than 2 crossings', () => {
-    expect(assembleLaps('s', [], [], 0)).toHaveLength(0);
+    expect(assembleLaps('s', [], [])).toHaveLength(0);
     const oneCrossing = [{ pointIndex: 1, t: 0.5, elapsedMs: 1000, distanceM: 100 }];
-    expect(assembleLaps('s', [], oneCrossing, 0)).toHaveLength(0);
+    expect(assembleLaps('s', [], oneCrossing)).toHaveLength(0);
   });
 
   it('produces N-1 laps for N crossings', () => {
@@ -122,7 +84,7 @@ describe('assembleLaps', () => {
       { pointIndex: 20, t: 0, elapsedMs: 20000, distanceM: 200 },
       { pointIndex: 40, t: 0, elapsedMs: 40000, distanceM: 400 },
     ];
-    const laps = assembleLaps('sess', pts, crossings, 0);
+    const laps = assembleLaps('sess', pts, crossings);
     expect(laps).toHaveLength(2);
   });
 
@@ -141,7 +103,7 @@ describe('assembleLaps', () => {
       { pointIndex: 5,  t: 0, elapsedMs: 5000,  distanceM: 50 },
       { pointIndex: 25, t: 0, elapsedMs: 25000, distanceM: 250 },
     ];
-    const [lap] = assembleLaps('sess', pts, crossings, 0);
+    const [lap] = assembleLaps('sess', pts, crossings);
     expect(lap.lapTimeMs).toBeCloseTo(20000, 0);
   });
 
@@ -160,7 +122,7 @@ describe('assembleLaps', () => {
       { pointIndex: 10, t: 0, elapsedMs: 10000, distanceM: 100 },
       { pointIndex: 30, t: 0, elapsedMs: 30000, distanceM: 300 },
     ];
-    const [lap] = assembleLaps('sess', pts, crossings, 0);
+    const [lap] = assembleLaps('sess', pts, crossings);
     // distanceAlongLapM = distanceM - start.distanceM
     expect(lap.points[0].distanceAlongLapM).toBeGreaterThanOrEqual(0);
     expect(lap.points[0].distanceAlongLapM).toBeLessThan(5);
@@ -179,7 +141,7 @@ describe('assembleLaps', () => {
       { pointIndex: 20, t: 0, elapsedMs: 20000, distanceM: 200 },
       { pointIndex: 40, t: 0, elapsedMs: 40000, distanceM: 400 },
     ];
-    const laps = assembleLaps('sess', pts, crossings, 0);
+    const laps = assembleLaps('sess', pts, crossings);
     expect(laps[0].lapNumber).toBe(1);
     expect(laps[1].lapNumber).toBe(2);
   });

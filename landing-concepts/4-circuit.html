@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LapAnalyser — Circuit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0c0d10; --surface:#131519; --surface2:#191c22; --border:#24272f;
+    --text:#eceef2; --dim:#8a8f9c; --gold:#e8b04b; --gold-soft:#f2c877;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  h1,h2,h3,.sora{font-family:'Sora',sans-serif;letter-spacing:-.015em}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 30px}
+
+  nav{border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;background:rgba(12,13,16,.82);backdrop-filter:blur(12px)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:72px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:'Sora';font-weight:700;font-size:18px}
+  .brand .m{width:24px;height:24px}
+  .nav-links{display:flex;gap:32px;align-items:center;font-size:14px}
+  .nav-links a{color:var(--dim);transition:.18s}
+  .nav-links a:hover{color:var(--text)}
+  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:4px;padding:11px 22px;font-size:14px;font-weight:600;transition:.2s;cursor:pointer;border:1px solid transparent}
+  .btn-primary{background:var(--gold);color:#1a1305}
+  .btn-primary:hover{background:var(--gold-soft)}
+  .btn-line{border-color:var(--border);color:var(--text)}
+  .btn-line:hover{border-color:var(--gold);color:var(--gold)}
+  .gold{color:var(--gold)}
+
+  /* hero */
+  .hero{position:relative;padding:104px 0 96px;overflow:hidden}
+  .track{position:absolute;inset:0;z-index:0;opacity:.5;-webkit-mask-image:radial-gradient(ellipse 70% 80% at 70% 40%,#000,transparent 78%)}
+  .track path{fill:none;stroke:var(--gold);stroke-width:1.4;opacity:.5}
+  .track .glowline{stroke-width:3;opacity:.14;filter:blur(3px)}
+  .hero-inner{position:relative;z-index:2;max-width:660px}
+  .eyebrow{font-family:'Sora';font-size:12px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:26px;display:flex;align-items:center;gap:14px}
+  .eyebrow::before{content:"";width:40px;height:1px;background:var(--gold)}
+  .hero h1{font-size:clamp(40px,6vw,70px);font-weight:800;line-height:1.02}
+  .hero p{margin:28px 0 36px;font-size:19px;color:var(--dim);max-width:540px}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .trust{margin-top:52px;display:flex;gap:40px;align-items:center;color:var(--dim);font-size:13px}
+  .trust b{color:var(--text);font-family:'Sora';font-size:24px;display:block}
+
+  section{padding:92px 0}
+  .rule{border:none;border-top:1px solid var(--border)}
+  .sec-head{max-width:600px;margin-bottom:52px}
+  .sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
+  .sec-head h2{font-size:clamp(30px,4vw,44px);font-weight:700}
+  .sec-head p{color:var(--dim);margin-top:14px;font-size:17px}
+
+  .disc{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .dc{padding:32px 26px;border-right:1px solid var(--border);transition:.25s;position:relative}
+  .dc:last-child{border-right:none}
+  .dc:hover{background:var(--surface)}
+  .dc .num{font-family:'Sora';font-size:12px;color:var(--gold);letter-spacing:.1em}
+  .dc h3{font-size:19px;margin:16px 0 10px;font-weight:600}
+  .dc p{font-size:14px;color:var(--dim)}
+
+  .feat{display:grid;grid-template-columns:repeat(2,1fr);gap:28px}
+  .fc{display:flex;gap:20px;padding:8px 0}
+  .fc .badge{flex:none;width:48px;height:48px;border-radius:10px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;color:var(--gold);font-size:22px}
+  .fc h3{font-size:19px;margin-bottom:8px;font-weight:600}
+  .fc p{color:var(--dim);font-size:14.5px}
+
+  .quote{max-width:820px;margin:0 auto;text-align:center}
+  .quote p{font-family:'Sora';font-size:clamp(22px,3vw,32px);font-weight:500;line-height:1.4}
+  .quote .a{color:var(--dim);font-size:14px;margin-top:22px;font-family:'Inter'}
+
+  .cta{border:1px solid var(--border);border-radius:16px;background:linear-gradient(160deg,var(--surface),var(--bg));padding:60px;text-align:center;position:relative;overflow:hidden}
+  .cta .ring{position:absolute;width:340px;height:340px;border:1px solid rgba(232,176,75,.14);border-radius:50%;top:-120px;right:-80px}
+  .cta .ring2{width:220px;height:220px;top:-60px;right:-20px}
+  .cta h2{font-size:clamp(28px,4vw,42px);font-weight:700;position:relative}
+  .cta p{color:var(--dim);margin:16px 0 28px;position:relative}
+  .cta .btn{position:relative}
+
+  footer{border-top:1px solid var(--border);padding:46px 0 60px;color:var(--dim);font-size:14px}
+  .fg{display:flex;justify-content:space-between;flex-wrap:wrap;gap:26px}
+  .fg a{color:var(--dim);display:block;margin:8px 0;transition:.18s}
+  .fg a:hover{color:var(--gold)}
+  @media(max-width:880px){.disc,.feat{grid-template-columns:1fr}.dc{border-right:none;border-bottom:1px solid var(--border)}.nav-links{display:none}}
+</style>
+</head>
+<body>
+<nav><div class="wrap nav-inner">
+  <div class="brand">
+    <svg class="m" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#e8b04b" stroke-width="1.6"/><path d="M7 15 Q9 6 14 9 T17 14" fill="none" stroke="#e8b04b" stroke-width="1.6"/></svg>
+    LapAnalyser
+  </div>
+  <div class="nav-links">
+    <a href="#disciplines">Disciplines</a><a href="#features">Features</a>
+    <a href="/docs">Docs</a><a href="/support">Support</a>
+    <a href="/auth" class="btn btn-line" style="padding:9px 18px">Log in</a>
+    <a href="/auth?mode=signup" class="btn btn-primary" style="padding:9px 20px">Get started</a>
+  </div>
+</div></nav>
+
+<header class="hero">
+  <svg class="track" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
+    <path class="glowline" d="M120 480 C60 360 180 240 340 260 C520 282 480 120 660 140 C860 162 780 320 960 300 C1120 282 1160 420 1040 480 C900 548 300 560 120 480 Z"/>
+    <path d="M120 480 C60 360 180 240 340 260 C520 282 480 120 660 140 C860 162 780 320 960 300 C1120 282 1160 420 1040 480 C900 548 300 560 120 480 Z"/>
+    <circle cx="660" cy="140" r="5" fill="#e8b04b"/>
+  </svg>
+  <div class="wrap hero-inner">
+    <div class="eyebrow">Precision lap analysis</div>
+    <h1>Where <span class="gold">instinct</span> meets the <span class="gold">data.</span></h1>
+    <p>Motorsport is as much brains as brawn. LapAnalyser turns your RaceBox telemetry into the clear, considered picture behind every fast lap.</p>
+    <div class="hero-cta">
+      <a href="/auth?mode=signup" class="btn btn-primary">Start free →</a>
+      <a href="/docs" class="btn btn-line">Documentation</a>
+    </div>
+    <div class="trust">
+      <div><b>25Hz</b>GPS sampling</div>
+      <div><b>0.001s</b>Sector precision</div>
+      <div><b>Any</b>Discipline that laps</div>
+    </div>
+  </div>
+</header>
+
+<section id="disciplines"><div class="wrap">
+  <div class="sec-head">
+    <h2>Refined for every discipline.</h2>
+    <p>The same considered analysis, whatever you ride or drive.</p>
+  </div>
+  <div class="disc">
+    <div class="dc"><div class="num">01</div><h3>Superbike & Road</h3><p>Lean angle, trail-braking and corner-exit drive read lap over lap.</p></div>
+    <div class="dc"><div class="num">02</div><h3>Motocross</h3><p>Split rhythm sections and compare lines through the rough.</p></div>
+    <div class="dc"><div class="num">03</div><h3>Cars & Karts</h3><p>Minimum speeds, braking traces and sector deltas.</p></div>  </div>
+</div></section>
+
+<hr class="rule">
+
+<section id="features"><div class="wrap">
+  <div class="sec-head"><h2>Every detail, considered.</h2><p>Six tools that turn a session file into a plan for the next lap.</p></div>
+  <div class="feat">
+    <div class="fc"><div class="badge">◎</div><div><h3>Automatic lap detection</h3><p>Gate-crossing detection splits your VBO into clean laps the moment it loads.</p></div></div>
+    <div class="fc"><div class="badge">⟲</div><div><h3>Rider-vs-rider overlay</h3><p>Compare any lap against your best or a teammate's, with a running delta.</p></div></div>
+    <div class="fc"><div class="badge">⌗</div><div><h3>Custom sectors & speed traps</h3><p>Define them per track, save named configs, share or set a default.</p></div></div>
+    <div class="fc"><div class="badge">◈</div><div><h3>Heat-mapped track view</h3><p>Speed and lean draped over the real circuit line, interactively.</p></div></div>
+    <div class="fc"><div class="badge">⇄</div><div><h3>Share private to public</h3><p>Owner-only, shared with named riders, or public — enforced throughout.</p></div></div>
+    <div class="fc"><div class="badge">⚙</div><div><h3>Settings that follow you</h3><p>Map layer, overlays and heat maps saved and restored on any device.</p></div></div>
+  </div>
+</div></section>
+
+<hr class="rule">
+
+<section><div class="wrap">
+  <div class="quote">
+    <p>“The rider with the throttle finds the limit. The rider with the <span class="gold">data</span> finds it a corner sooner.”</p>
+    <div class="a">— The premise behind LapAnalyser</div>
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap">
+  <div class="cta">
+    <div class="ring"></div><div class="ring ring2"></div>
+    <h2>Bring the brains to your next session.</h2>
+    <p>Free to start. Use the RaceBox you already run.</p>
+    <a href="/auth?mode=signup" class="btn btn-primary">Create your account →</a>
+  </div>
+</div></section>
+
+<footer><div class="wrap fg">
+  <div style="max-width:270px"><div class="brand" style="margin-bottom:12px"><svg class="m" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#e8b04b" stroke-width="1.6"/><path d="M7 15 Q9 6 14 9 T17 14" fill="none" stroke="#e8b04b" stroke-width="1.6"/></svg>LapAnalyser</div><p>Where instinct meets the data.</p></div>
+  <div style="display:flex;gap:48px">
+    <div><strong style="color:var(--text)">Product</strong><a href="#features">Features</a><a href="#disciplines">Disciplines</a><a href="/auth">Log in</a></div>
+    <div><strong style="color:var(--text)">Resources</strong><a href="/docs">Documentation</a><a href="/support">Support</a><a href="/docs/quickstart">Quick start</a></div>
+  </div>
+</div></footer>
+</body>
+</html>

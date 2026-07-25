@@ -1,8 +1,6 @@
 import { useMemo } from 'react';
-import type { Lap } from '../domain/models';
 import { buildDistanceGrid, buildTimeGrid } from '../domain/trackDistance';
 import type { DistanceGridSeries, TimeGridSeries } from '../domain/trackDistance';
-import { lapColor } from '../utils/colors';
 import type { SelectedLap } from './useSelectedLaps';
 
 export function useDistanceGrid(selectedLaps: SelectedLap[]): DistanceGridSeries[] {

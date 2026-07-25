@@ -1,17 +1,36 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --surface2: #242838;
-  --border: #2e3347;
-  --text: #e2e8f0;
-  --text-dim: #7c8db5;
+  /* Base surfaces — aligned to the public "apex" landing theme */
+  --bg: #0b0d12;
+  --surface: #14171f;
+  --surface2: #1c202b;
+  --border: #262b3a;
+  --text: #e8edf7;
+  --text-dim: #8493b5;
+
+  /* Signature brand red (primary action) + blue data accent */
+  --red: #ff2e4d;
+  --red-deep: #c8102e;
+  --red-glow: rgba(255, 46, 77, 0.35);
   --accent: #4f8ef7;
   --accent-hover: #6ba3ff;
+
   --danger: #e64c4c;
   --success: #3cb44b;
   --sidebar-width: 260px;
+
+  /* Aliases so shared brand components (e.g. <Logo>) render correctly
+     outside the public site's .apexRoot scope. */
+  --apex-bg: var(--bg);
+  --apex-surface: var(--surface);
+  --apex-surface2: var(--surface2);
+  --apex-border: var(--border);
+  --apex-text: var(--text);
+  --apex-dim: var(--text-dim);
+  --apex-red: var(--red);
+  --apex-red-deep: var(--red-deep);
+  --apex-accent: var(--accent);
 }
 
 html, body, #root {
@@ -23,21 +42,41 @@ html, body, #root {
   overflow: hidden;
 }
 
+h1, h2, h3, h4 {
+  font-family: 'Archivo', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
 button {
   cursor: pointer;
   font: inherit;
+  font-weight: 600;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 5px;
   padding: 4px 10px;
   background: var(--surface2);
   color: var(--text);
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.2s;
 }
-button:hover { background: var(--accent); color: #fff; }
-button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-button.danger:hover { background: var(--danger); }
+button:hover { background: var(--surface); border-color: var(--red); color: var(--text); }
+button.active {
+  background: linear-gradient(100deg, var(--red), var(--red-deep));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 16px var(--red-glow);
+}
+button.danger:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
 
-input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input:not([type]):focus,
+textarea:focus {
+  border-color: var(--red);
+}
+
+input[type="checkbox"] { accent-color: var(--red); cursor: pointer; }
 
 table { border-collapse: collapse; width: 100%; }
 th, td { padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -47,3 +86,4 @@ tr:hover td { background: var(--surface2); }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--red); }

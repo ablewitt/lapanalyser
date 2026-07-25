@@ -20,7 +20,9 @@
 
 .loading {
   font-size: 11px;
-  color: var(--accent);
+  font-weight: 600;
+  color: var(--red);
+  text-shadow: 0 0 12px var(--red-glow);
   animation: blink 1s step-end infinite;
 }
 

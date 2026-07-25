@@ -1,4 +1,5 @@
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig } from 'vitest/config';
+import type { Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { readdirSync, readFileSync, existsSync, createReadStream } from 'fs';
 import { join } from 'path';

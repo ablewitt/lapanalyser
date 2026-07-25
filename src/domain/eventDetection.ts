@@ -1,5 +1,5 @@
-import type { DataPoint, Lap, LapEvent } from './models';
-import { movingAverage, findLocalMinima, findLocalMaxima } from '../utils/signal';
+import type { Lap, LapEvent } from './models';
+import { movingAverage, findLocalMaxima } from '../utils/signal';
 
 const SMOOTH_WINDOW = 5;
 

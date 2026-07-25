@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import styles from './MainArea.module.css';
 import { useUiStore, type ActiveTab } from '../../store/ui';
 

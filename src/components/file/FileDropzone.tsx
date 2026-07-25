@@ -2,42 +2,56 @@ import { useCallback, useRef } from 'react';
 import styles from './FileDropzone.module.css';
 import { useSessionsStore } from '../../store/sessions';
 import { useUiStore } from '../../store/ui';
-import ParserWorker from '../../workers/parser.worker?worker';
-import type { ParseResult } from '../../parsers/registry';
+import { useAuthStore } from '../../store/auth';
+import { parseVboContent } from '../../lib/parseWorker';
+import { uploadSessionFile, saveSessionRecord, rekeySession, detectCircuitName } from '../../lib/sessionService';
 
 export default function FileDropzone() {
-  const addSession = useSessionsStore(s => s.addSession);
+  const { addSession, sessions } = useSessionsStore();
   const { setLoading, setParseWarnings } = useUiStore();
+  const user = useAuthStore(s => s.user);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const processFile = useCallback((file: File) => {
-    const already = useSessionsStore.getState().sessions.some(s => s.filename === file.name);
-    if (already) return;
+  const processFile = useCallback(async (file: File) => {
+    if (sessions.some(s => s.filename === file.name)) return;
+
     setLoading(true);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      const worker = new ParserWorker();
-      worker.onmessage = (msg: MessageEvent<{ type: string; result?: ParseResult; message?: string }>) => {
-        setLoading(false);
-        worker.terminate();
-        if (msg.data.type === 'success' && msg.data.result) {
-          addSession(msg.data.result.session);
-          setParseWarnings(msg.data.result.warnings);
-        } else {
-          alert(`Parse error: ${msg.data.message}`);
-        }
-      };
-      worker.postMessage({ filename: file.name, content });
-    };
-    reader.readAsText(file);
-  }, [addSession, setLoading, setParseWarnings]);
+    try {
+      const content = await file.text();
+      const dbId = crypto.randomUUID();
+      const storagePath = `${user!.id}/${dbId}.vbo`;
+
+      const [parseResult] = await Promise.all([
+        parseVboContent(file.name, content),
+        uploadSessionFile(file, storagePath),
+      ]);
+
+      const { session } = parseResult;
+      const lapCount = session.laps.length;
+      const bestLapTimeMs = lapCount > 0
+        ? Math.round(Math.min(...session.laps.map(l => l.lapTimeMs)))
+        : null;
+      const gpsPoints = session.laps.flatMap(l => l.points.map(p => p.gps));
+      const circuitName = await detectCircuitName(gpsPoints);
+
+      await saveSessionRecord(
+        dbId, user!.id, file.name,
+        session.venue, session.dateRecorded, storagePath,
+        lapCount, bestLapTimeMs, circuitName,
+      );
+
+      addSession(rekeySession(session, dbId));
+      setParseWarnings(parseResult.warnings);
+    } catch (err) {
+      alert(`Error: ${(err as Error).message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [addSession, sessions, setLoading, setParseWarnings, user]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    for (const file of Array.from(e.dataTransfer.files)) {
-      processFile(file);
-    }
+    for (const file of Array.from(e.dataTransfer.files)) processFile(file);
   }, [processFile]);
 
   return (

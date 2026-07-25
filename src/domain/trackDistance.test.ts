@@ -1,6 +1,39 @@
 import { describe, it, expect } from 'vitest';
-import { timeAtDistanceMs, buildDistanceGrid, buildTimeGrid } from './trackDistance';
+import { timeAtDistanceMs, buildDistanceGrid, buildTimeGrid, interpolateChannel } from './trackDistance';
 import { makeStraightLap, makePointsLap } from './testHelpers';
+
+// ── interpolateChannel ────────────────────────────────────────────────────────
+
+describe('interpolateChannel', () => {
+  const lap = makePointsLap('lap', [
+    { ms: 0,    dist: 0,   kmh: 80,  lean: 0,  acc: 0 },
+    { ms: 1000, dist: 100, kmh: 100, lean: 20, acc: -0.5 },
+    { ms: 2000, dist: 200, kmh: 60,  lean: 40, acc: 0.3 },
+  ]);
+
+  it('returns start value when target is at or before start', () => {
+    expect(interpolateChannel(lap.points, 0, 'velocityKmh')).toBeCloseTo(80, 1);
+    expect(interpolateChannel(lap.points, -10, 'velocityKmh')).toBeCloseTo(80, 1);
+  });
+
+  it('returns end value when target is at or beyond end', () => {
+    expect(interpolateChannel(lap.points, 200, 'velocityKmh')).toBeCloseTo(60, 1);
+    expect(interpolateChannel(lap.points, 999, 'velocityKmh')).toBeCloseTo(60, 1);
+  });
+
+  it('interpolates velocityKmh at midpoint', () => {
+    expect(interpolateChannel(lap.points, 50, 'velocityKmh')).toBeCloseTo(90, 1);
+  });
+
+  it('interpolates leanAngleDeg correctly', () => {
+    expect(interpolateChannel(lap.points, 100, 'leanAngleDeg')).toBeCloseTo(20, 1);
+    expect(interpolateChannel(lap.points, 150, 'leanAngleDeg')).toBeCloseTo(30, 1);
+  });
+
+  it('interpolates longAccG correctly', () => {
+    expect(interpolateChannel(lap.points, 50, 'longAccG')).toBeCloseTo(-0.25, 2);
+  });
+});
 
 // ── timeAtDistanceMs ──────────────────────────────────────────────────────────
 

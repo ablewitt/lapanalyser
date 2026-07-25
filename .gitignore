@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Original full-size source photos — optimised copies live in src/assets/
+/Images
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LapAnalyser — Landing Concepts</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0f1117;--surface:#1a1d27;--border:#2e3347;--text:#e2e8f0;--dim:#7c8db5;--accent:#4f8ef7}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding:56px 26px}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:34px;font-weight:800;letter-spacing:-.02em}
+  .sub{color:var(--dim);margin:12px 0 40px;font-size:16px;max-width:640px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+  .card{border:1px solid var(--border);border-radius:14px;background:var(--surface);overflow:hidden;text-decoration:none;color:inherit;transition:.2s;display:flex;flex-direction:column}
+  .card:hover{transform:translateY(-5px);border-color:var(--accent)}
+  .swatch{height:120px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;letter-spacing:.04em}
+  .body{padding:20px}
+  .tag{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-weight:700}
+  .card h3{font-size:20px;margin:8px 0 8px}
+  .card p{font-size:14px;color:var(--dim)}
+  .card .open{margin-top:14px;font-size:13px;font-weight:600;color:var(--accent)}
+  .note{margin-top:40px;padding:18px 20px;border:1px solid var(--border);border-radius:10px;background:var(--surface);font-size:13.5px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Landing page concepts</h1>
+  <p class="sub">Five distinct directions for the LapAnalyser landing page. Each is a self-contained mockup with the same content — hero, multi-discipline showcase, feature grid, and links to log in / sign up, docs and support. Open each, then tell me which direction (or which mix) to build for real.</p>
+  <div class="grid">
+    <a class="card" href="1-apex.html">
+      <div class="swatch" style="background:linear-gradient(135deg,#ff2e4d,#c8102e);color:#fff">APEX</div>
+      <div class="body"><div class="tag">Bold · Racing red</div><h3>1 · Apex</h3><p>Kinetic hero, speed-line motif, live telemetry card. Maximum adrenaline, sharp and confident.</p><div class="open">Open concept →</div></div>
+    </a>
+    <a class="card" href="2-telemetry.html">
+      <div class="swatch" style="background:linear-gradient(135deg,#4f8ef7,#242838);color:#fff">TELEMETRY</div>
+      <div class="body"><div class="tag">Technical · App-native</div><h3>2 · Telemetry</h3><p>Data-forward, monospace, dashboard mockup. Closest to the current app's look — precise and trustworthy.</p><div class="open">Open concept →</div></div>
+    </a>
+    <a class="card" href="3-adrenaline.html">
+      <div class="swatch" style="background:linear-gradient(135deg,#ff2d95,#00e5ff);color:#08080f">ADRENALINE</div>
+      <div class="body"><div class="tag">High energy · Neon glass</div><h3>3 · Adrenaline</h3><p>Aurora gradients, glassmorphism, animated marquee. The excitement dial turned all the way up.</p><div class="open">Open concept →</div></div>
+    </a>
+    <a class="card" href="4-circuit.html">
+      <div class="swatch" style="background:linear-gradient(135deg,#e8b04b,#0c0d10);color:#1a1305">CIRCUIT</div>
+      <div class="body"><div class="tag">Premium · Classy</div><h3>4 · Circuit</h3><p>Muted dark, gold accent, elegant track-line motif. Leans into the "brains" side — refined and considered.</p><div class="open">Open concept →</div></div>
+    </a>
+    <a class="card" href="5-momentum.html">
+      <div class="swatch" style="background:linear-gradient(135deg,#ff6a1a,#101216);color:#fff">MOMENTUM</div>
+      <div class="body"><div class="tag">Dynamic · Editorial</div><h3>5 · Momentum</h3><p>Diagonal split hero, condensed type, checkered ticker. Discipline-forward and full of motion.</p><div class="open">Open concept →</div></div>
+    </a>
+  </div>
+  <div class="note">
+    <strong style="color:var(--text)">Note:</strong> these are static HTML mockups for choosing a direction — not wired into the React app. Links point at <code>/auth</code>, <code>/docs</code> and <code>/support</code> as placeholders. Once you pick a favourite (or a blend), I'll rebuild it as a proper React route using the app's design tokens.
+  </div>
+</div>
+</body>
+</html>

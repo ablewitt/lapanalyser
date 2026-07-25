@@ -11,7 +11,7 @@ export interface SegmentData {
 export class TelemetryCanvasLayer extends L.Layer {
   private _canvas: HTMLCanvasElement | null = null;
   private _segments: SegmentData[] = [];
-  private _map: L.Map | null = null;
+  private _lmap: L.Map | null = null;
 
   setSegments(segments: SegmentData[]): this {
     this._segments = segments;
@@ -20,7 +20,7 @@ export class TelemetryCanvasLayer extends L.Layer {
   }
 
   onAdd(map: L.Map): this {
-    this._map = map;
+    this._lmap = map;
     this._canvas = L.DomUtil.create('canvas', 'leaflet-telemetry-canvas') as HTMLCanvasElement;
     this._canvas.style.position = 'absolute';
     this._canvas.style.pointerEvents = 'none';
@@ -36,26 +36,26 @@ export class TelemetryCanvasLayer extends L.Layer {
       this._canvas.remove();
       this._canvas = null;
     }
-    this._map = null;
+    this._lmap = null;
     return this;
   }
 
   private _redraw = () => {
-    if (!this._canvas || !this._map) return;
+    if (!this._canvas || !this._lmap) return;
 
-    const mapSize = this._map.getSize();
+    const mapSize = this._lmap.getSize();
     this._canvas.width = mapSize.x;
     this._canvas.height = mapSize.y;
 
-    const topLeft = this._map.containerPointToLayerPoint([0, 0]);
+    const topLeft = this._lmap.containerPointToLayerPoint([0, 0]);
     L.DomUtil.setPosition(this._canvas, topLeft);
 
     const ctx = this._canvas.getContext('2d')!;
     ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
     for (const seg of this._segments) {
-      const p1 = this._map.latLngToContainerPoint([seg.start.lat, seg.start.lng]);
-      const p2 = this._map.latLngToContainerPoint([seg.end.lat, seg.end.lng]);
+      const p1 = this._lmap.latLngToContainerPoint([seg.start.lat, seg.start.lng]);
+      const p2 = this._lmap.latLngToContainerPoint([seg.end.lat, seg.end.lng]);
 
       ctx.strokeStyle = heatmapColor(seg.normalizedValue);
       ctx.lineWidth = 4;

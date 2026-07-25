@@ -1,42 +1,46 @@
-import styles from './App.module.css';
-import Sidebar from './components/layout/Sidebar';
-import MainArea from './components/layout/MainArea';
-import FileDropzone from './components/file/FileDropzone';
-import SessionTree from './components/file/SessionTree';
-import ComparisonModeToggle from './components/selection/ComparisonModeToggle';
-import GroupBuilder from './components/selection/GroupBuilder';
-import ChartView from './components/chart/ChartView';
-import MapView from './components/map/MapView';
-import TableView from './components/table/TableView';
-import { useUiStore } from './store/ui';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStore } from './store/auth';
+import LandingPage from './components/public/LandingPage';
+import DocsPage from './components/public/DocsPage';
+import SupportPage from './components/public/SupportPage';
+import AuthPage from './components/auth/AuthPage';
+import UsernameSetup from './components/auth/UsernameSetup';
+import Workspace from './components/app/Workspace';
+
+function Loading() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-dim)' }}>
+      Loading…
+    </div>
+  );
+}
+
+/** /auth — send already-authenticated users straight into the app. */
+function AuthRoute() {
+  const { user, isInitializing } = useAuthStore();
+  if (isInitializing) return <Loading />;
+  if (user) return <Navigate to="/app" replace />;
+  return <AuthPage />;
+}
+
+/** /app — require an authenticated user; prompt for a username if missing. */
+function AppRoute() {
+  const { user, profile, isInitializing, isLoadingProfile } = useAuthStore();
+  if (isInitializing || isLoadingProfile) return <Loading />;
+  if (!user) return <Navigate to="/auth" replace />;
+  if (!profile?.username) return <UsernameSetup />;
+  return <Workspace />;
+}
 
 export default function App() {
-  const { activeTab, isLoading, parseWarnings } = useUiStore();
-  const clearWarnings = useUiStore(s => s.setParseWarnings);
-
   return (
-    <div className={styles.app}>
-      <Sidebar>
-        <div className={styles.sidebarHeader}>
-          <span className={styles.appTitle}>LapAnalyser</span>
-          {isLoading && <span className={styles.loading}>Parsing…</span>}
-        </div>
-        <FileDropzone />
-        {parseWarnings.length > 0 && (
-          <div className={styles.warnings}>
-            {parseWarnings.map((w, i) => <div key={i}>{w}</div>)}
-            <button style={{ marginTop: 4, fontSize: 11 }} onClick={() => clearWarnings([])}>Dismiss</button>
-          </div>
-        )}
-        <ComparisonModeToggle />
-        <SessionTree />
-        <GroupBuilder />
-      </Sidebar>
-      <MainArea>
-        {activeTab === 'chart' && <ChartView />}
-        {activeTab === 'map' && <MapView />}
-        {activeTab === 'table' && <TableView />}
-      </MainArea>
-    </div>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/docs" element={<DocsPage />} />
+      <Route path="/support" element={<SupportPage />} />
+      <Route path="/auth" element={<AuthRoute />} />
+      <Route path="/app" element={<AppRoute />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

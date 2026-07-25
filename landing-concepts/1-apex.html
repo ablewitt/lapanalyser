@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LapAnalyser — Apex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Archivo:wght@700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b0d12; --surface:#14171f; --surface2:#1c202b; --border:#262b3a;
+    --text:#e8edf7; --dim:#8493b5; --red:#ff2e4d; --red-deep:#c8102e;
+    --accent:#4f8ef7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;overflow-x:hidden}
+  h1,h2,h3,.display{font-family:'Archivo',sans-serif;letter-spacing:-.02em}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+  /* Nav */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(11,13,18,.72);border-bottom:1px solid var(--border)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Archivo';font-weight:900;font-size:19px}
+  .brand .mark{width:14px;height:26px;background:linear-gradient(var(--red),var(--red-deep));transform:skewX(-16deg);box-shadow:0 0 18px rgba(255,46,77,.6)}
+  .nav-links{display:flex;gap:30px;align-items:center;font-size:14px;font-weight:500}
+  .nav-links a{color:var(--dim);transition:color .2s}
+  .nav-links a:hover{color:var(--text)}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;border-radius:6px;padding:11px 22px;font-size:14px;transition:transform .15s,box-shadow .2s;border:none;cursor:pointer}
+  .btn-primary{background:linear-gradient(100deg,var(--red),var(--red-deep));color:#fff;box-shadow:0 6px 24px rgba(255,46,77,.35)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 34px rgba(255,46,77,.5)}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--red)}
+
+  /* Hero */
+  .hero{position:relative;padding:96px 0 80px;overflow:hidden}
+  .speedlines{position:absolute;inset:0;background:
+    repeating-linear-gradient(115deg,transparent 0 38px,rgba(255,46,77,.04) 38px 40px);
+    mask-image:linear-gradient(90deg,transparent,#000 40%,#000);pointer-events:none}
+  .glow{position:absolute;width:620px;height:620px;right:-160px;top:-120px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,46,77,.22),transparent 62%);filter:blur(20px)}
+  .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;position:relative;z-index:2}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:22px}
+  .kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red);animation:pulse 1.6s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  .hero h1{font-size:clamp(42px,6vw,76px);font-weight:900;line-height:.98}
+  .hero h1 em{font-style:normal;color:transparent;-webkit-text-stroke:1.5px var(--red)}
+  .hero p{margin:26px 0 34px;font-size:18px;color:var(--dim);max-width:520px}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .stats{display:flex;gap:34px;margin-top:44px}
+  .stat b{font-family:'Archivo';font-size:30px;display:block}
+  .stat span{font-size:12.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
+
+  /* Telemetry card */
+  .telem{background:linear-gradient(160deg,var(--surface),#0e1016);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+  .telem-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:12px;color:var(--dim);letter-spacing:.05em}
+  .telem-head b{color:var(--text);font-family:'Archivo';font-size:15px}
+  .lap-time{font-family:'Archivo';font-size:40px;color:var(--red);text-shadow:0 0 24px rgba(255,46,77,.4)}
+  .telem svg{width:100%;height:120px;display:block;margin:8px 0 14px}
+  .sectors{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .sector{background:var(--surface2);border-radius:8px;padding:10px;text-align:center}
+  .sector span{font-size:11px;color:var(--dim);display:block}
+  .sector b{font-family:'Archivo';font-size:16px}
+  .sector.best b{color:#b06bff}
+
+  /* Disciplines */
+  section{padding:88px 0}
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 54px}
+  .sec-head h2{font-size:clamp(30px,4vw,46px);font-weight:800}
+  .sec-head p{color:var(--dim);margin-top:14px;font-size:17px}
+  .disc{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .disc-card{position:relative;border:1px solid var(--border);border-radius:14px;padding:26px 22px;background:var(--surface);overflow:hidden;transition:transform .2s,border-color .2s}
+  .disc-card:hover{transform:translateY(-6px);border-color:var(--red)}
+  .disc-card .ico{font-size:30px;margin-bottom:16px;display:block}
+  .disc-card h3{font-size:19px;margin-bottom:8px}
+  .disc-card p{font-size:14px;color:var(--dim)}
+  .disc-card::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--red);transition:width .3s}
+  .disc-card:hover::after{width:100%}
+
+  /* Features */
+  .feat{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .feat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:30px}
+  .feat-card .n{font-family:'Archivo';font-size:13px;color:var(--red);letter-spacing:.1em}
+  .feat-card h3{font-size:20px;margin:14px 0 10px}
+  .feat-card p{color:var(--dim);font-size:14.5px}
+
+  /* CTA band */
+  .band{background:linear-gradient(100deg,var(--red-deep),var(--red));border-radius:20px;padding:56px;text-align:center;position:relative;overflow:hidden}
+  .band::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent 0 30px,rgba(0,0,0,.08) 30px 32px)}
+  .band h2{font-size:clamp(28px,4vw,44px);color:#fff;position:relative}
+  .band p{color:rgba(255,255,255,.85);margin:14px 0 28px;position:relative}
+  .band .btn{position:relative}
+  .btn-onred{background:#0b0d12;color:#fff}
+
+  footer{border-top:1px solid var(--border);padding:44px 0 60px;color:var(--dim);font-size:14px}
+  .foot-grid{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px}
+  .foot-links{display:flex;gap:40px}
+  .foot-links a{color:var(--dim);display:block;margin:8px 0;transition:color .2s}
+  .foot-links a:hover{color:var(--text)}
+  @media(max-width:860px){.hero-grid,.disc,.feat{grid-template-columns:1fr}.nav-links{display:none}}
+</style>
+</head>
+<body>
+<nav><div class="wrap nav-inner">
+  <div class="brand"><span class="mark"></span>LAPANALYSER</div>
+  <div class="nav-links">
+    <a href="#disciplines">Disciplines</a>
+    <a href="#features">Features</a>
+    <a href="/docs">Docs</a>
+    <a href="/support">Support</a>
+    <a href="/auth" class="btn btn-ghost" style="padding:9px 18px">Log in</a>
+    <a href="/auth?mode=signup" class="btn btn-primary" style="padding:9px 18px">Start free</a>
+  </div>
+</div></nav>
+
+<header class="hero">
+  <div class="speedlines"></div><div class="glow"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kicker"><span class="dot"></span>GPS telemetry · every discipline</div>
+      <h1>FIND THE<br>TENTHS.<br><em>OWN THE APEX.</em></h1>
+      <p>Turn raw RaceBox VBO data into lap-by-lap insight. Braking points, lean angle, sector deltas and speed traps — for anyone chasing a faster lap.</p>
+      <div class="hero-cta">
+        <a href="/auth?mode=signup" class="btn btn-primary">Analyse your first lap →</a>
+        <a href="/docs" class="btn btn-ghost">Read the docs</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>0.001s</b><span>Sector precision</span></div>
+        <div class="stat"><b>25Hz</b><span>GPS sampling</span></div>
+        <div class="stat"><b>∞</b><span>Riders compared</span></div>
+      </div>
+    </div>
+    <div class="telem">
+      <div class="telem-head"><b>Morgan Park · Lap 14</b><span>PERSONAL BEST</span></div>
+      <div class="lap-time">1:08.442</div>
+      <svg viewBox="0 0 400 120" preserveAspectRatio="none">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ff2e4d" stop-opacity=".35"/><stop offset="1" stop-color="#ff2e4d" stop-opacity="0"/>
+        </linearGradient></defs>
+        <path d="M0 90 C40 30 70 40 110 70 S180 110 220 50 300 20 340 60 380 40 400 55" fill="none" stroke="#ff2e4d" stroke-width="2.5"/>
+        <path d="M0 90 C40 30 70 40 110 70 S180 110 220 50 300 20 340 60 380 40 400 55 L400 120 L0 120 Z" fill="url(#g)"/>
+        <path d="M0 100 C40 60 70 65 110 82 S180 118 220 74 300 55 340 82 380 70 400 80" fill="none" stroke="#4f8ef7" stroke-width="1.8" stroke-dasharray="4 4" opacity=".7"/>
+      </svg>
+      <div class="sectors">
+        <div class="sector"><span>Sector 1</span><b>22.11</b></div>
+        <div class="sector best"><span>Sector 2</span><b>24.09</b></div>
+        <div class="sector"><span>Sector 3</span><b>22.24</b></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="disciplines">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>One tool. Every lap.</h2>
+      <p>If a stopwatch runs, LapAnalyser reads it. Same engine, tuned to whatever you ride or drive.</p>
+    </div>
+    <div class="disc">
+      <div class="disc-card"><span class="ico">🏍️</span><h3>Superbike & Road</h3><p>Lean angle, trail-braking and corner-exit drive, lap over lap.</p></div>
+      <div class="disc-card"><span class="ico">🏁</span><h3>Motocross</h3><p>Split rough sections, compare lines through ruts and rhythm.</p></div>
+      <div class="disc-card"><span class="ico">🏎️</span><h3>Cars & Karts</h3><p>Sector deltas, minimum speeds and braking traces for the track day crowd.</p></div>    </div>
+  </div>
+</section>
+
+<section id="features" style="background:var(--surface)">
+  <div class="wrap">
+    <div class="sec-head"><h2>Brains and brawn</h2><p>The instinct to push, backed by data that tells you exactly where.</p></div>
+    <div class="feat">
+      <div class="feat-card"><div class="n">01 — DETECT</div><h3>Automatic lap splitting</h3><p>Drop your VBO file. Start/finish gate crossing detection carves it into clean laps — no manual trimming.</p></div>
+      <div class="feat-card"><div class="n">02 — COMPARE</div><h3>Rider vs rider</h3><p>Overlay any lap against your best or a teammate's. Watch the delta build corner by corner.</p></div>
+      <div class="feat-card"><div class="n">03 — MEASURE</div><h3>Sectors & speed traps</h3><p>Define custom sectors and traps per track. Save configs, share them, set a default.</p></div>
+      <div class="feat-card"><div class="n">04 — MAP</div><h3>Live track map</h3><p>Colour-coded speed and lean heat maps draped over the real circuit line.</p></div>
+      <div class="feat-card"><div class="n">05 — SHARE</div><h3>Private to public</h3><p>Keep sessions private, share with named riders, or publish for the whole paddock.</p></div>
+      <div class="feat-card"><div class="n">06 — SYNC</div><h3>Your setup, everywhere</h3><p>Base map, heat maps and overlays saved to your account and restored on every device.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="band">
+      <h2>Your next lap is faster.</h2>
+      <p>Free to start. No hardware beyond the RaceBox you already run.</p>
+      <a href="/auth?mode=signup" class="btn btn-onred">Create your account →</a>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap foot-grid">
+  <div><div class="brand" style="margin-bottom:10px"><span class="mark"></span>LAPANALYSER</div><p style="max-width:260px">Motorsport lap analysis for everyone chasing a faster time.</p></div>
+  <div class="foot-links">
+    <div><strong style="color:var(--text)">Product</strong><a href="#features">Features</a><a href="#disciplines">Disciplines</a><a href="/auth">Log in</a></div>
+    <div><strong style="color:var(--text)">Learn</strong><a href="/docs">Documentation</a><a href="/support">Support</a><a href="/docs/quickstart">Quick start</a></div>
+  </div>
+</div></footer>
+</body>
+</html>
