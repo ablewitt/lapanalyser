@@ -1,6 +1,8 @@
 import type { ComponentType } from 'react';
 import DashboardPanel from './panels/DashboardPanel';
 import TicketsPanel from './panels/TicketsPanel';
+import UsersPanel from './panels/UsersPanel';
+import SessionsPanel from './panels/SessionsPanel';
 
 /**
  * A self-contained admin section. Adding a feature to the admin panel means
@@ -19,6 +21,8 @@ export interface AdminModule {
 
 export const ADMIN_MODULES: AdminModule[] = [
   { path: '', label: 'Dashboard', icon: '📊', component: DashboardPanel },
+  { path: 'users', label: 'Users', icon: '👥', component: UsersPanel },
+  { path: 'sessions', label: 'Sessions', icon: '📁', component: SessionsPanel },
   { path: 'tickets', label: 'Support', icon: '🎫', component: TicketsPanel },
-  // Later phases register here: users, sessions, analytics, audit log.
+  // Later phases register here: analytics, audit log.
 ];

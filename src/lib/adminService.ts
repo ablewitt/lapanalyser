@@ -1,4 +1,8 @@
 import { supabase } from './supabase';
+import type { Database } from './database.types';
+import { fetchOwnerUsernames, type DbSessionRow } from './sessionService';
+
+export type AdminUser = Database['public']['Functions']['admin_list_users']['Returns'][number];
 
 // ── Admin-only data access ────────────────────────────────────
 // Reads rely on RLS admin-bypass policies (see is_admin()). Privileged
@@ -33,4 +37,47 @@ export async function fetchAdminOverview(): Promise<AdminOverview> {
     trackConfigCount: configs.count ?? 0,
     publicSessionCount: publicSessions.count ?? 0,
   };
+}
+
+// ── User management ───────────────────────────────────────────
+
+export async function listUsers(): Promise<AdminUser[]> {
+  const { data, error } = await supabase.rpc('admin_list_users');
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function setUserRole(targetId: string, role: 'user' | 'admin'): Promise<void> {
+  const { error } = await supabase.rpc('admin_set_role', { target_id: targetId, new_role: role });
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteUser(targetId: string): Promise<void> {
+  const { error } = await supabase.rpc('admin_delete_user', { target_id: targetId });
+  if (error) throw new Error(error.message);
+}
+
+// ── Session management ────────────────────────────────────────
+
+export interface AdminSession {
+  row: DbSessionRow;
+  ownerName: string | null;
+}
+
+/** All sessions (admin RLS bypass) with owner usernames resolved. */
+export async function listAllSessions(): Promise<AdminSession[]> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+
+  const rows = data ?? [];
+  const names = await fetchOwnerUsernames([...new Set(rows.map(r => r.user_id))]);
+  return rows.map(row => ({ row, ownerName: names[row.user_id] ?? null }));
+}
+
+export async function setSessionPublic(id: string, isPublic: boolean): Promise<void> {
+  const { error } = await supabase.from('sessions').update({ is_public: isPublic }).eq('id', id);
+  if (error) throw new Error(error.message);
 }

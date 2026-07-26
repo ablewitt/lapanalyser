@@ -310,6 +310,27 @@ export interface Database {
         Args: Record<string, never>;
         Returns: string[];
       };
+      admin_list_users: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          username: string | null;
+          email: string;
+          role: 'user' | 'admin';
+          created_at: string;
+          last_sign_in_at: string | null;
+          session_count: number;
+          storage_bytes: number;
+        }[];
+      };
+      admin_set_role: {
+        Args: { target_id: string; new_role: string };
+        Returns: undefined;
+      };
+      admin_delete_user: {
+        Args: { target_id: string };
+        Returns: undefined;
+      };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
