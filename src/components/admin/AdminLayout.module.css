@@ -198,10 +198,16 @@
 .threadSubject { font-size: 18px; }
 
 .messages { display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; }
-.message { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
-.messageInternal { border-color: #ffb020; background: rgba(255, 176, 32, 0.06); }
-.internalTag { font-size: 10px; color: #ffb020; text-transform: uppercase; letter-spacing: 0.05em; }
-.messageBody { font-size: 13px; white-space: pre-wrap; margin-top: 2px; }
+.message { border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px 10px; max-width: 85%; }
+
+/* Requester (ticket owner) on the left; staff replies on the right, tinted. */
+.fromUser { align-self: flex-start; background: var(--bg); }
+.fromStaff { align-self: flex-end; background: rgba(79, 142, 247, 0.08); border-color: rgba(79, 142, 247, 0.3); }
+.messageInternal { align-self: flex-end; border-color: #ffb020; background: rgba(255, 176, 32, 0.08); }
+
+.messageFrom { font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 3px; }
+.messageInternal .messageFrom { color: #ffb020; text-transform: uppercase; letter-spacing: 0.04em; }
+.messageBody { font-size: 13px; white-space: pre-wrap; }
 .messageTime { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
 
 .replyBox { margin-top: 12px; }

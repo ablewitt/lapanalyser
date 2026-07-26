@@ -45,10 +45,22 @@ export const useAuthStore = create<AuthState>()((set) => ({
 }));
 
 supabase.auth.onAuthStateChange((_event, session) => {
+  const prev = useAuthStore.getState();
+
   if (!session?.user) {
     useAuthStore.setState({ user: null, session: null, profile: null, isInitializing: false, isLoadingProfile: false });
     return;
   }
+
+  // Token refreshes fire on tab focus/interval. For the same user we already
+  // have a profile for, just refresh the session token silently — toggling
+  // isLoadingProfile here would flip the route to <Loading/> and unmount the
+  // current view (open modals, admin pages, in-app state).
+  if (prev.user?.id === session.user.id && prev.profile) {
+    useAuthStore.setState({ user: session.user, session });
+    return;
+  }
+
   useAuthStore.setState({ user: session.user, session, isLoadingProfile: true });
   loadProfile(session.user.id).then(profile => {
     useAuthStore.setState({ profile, isInitializing: false, isLoadingProfile: false });

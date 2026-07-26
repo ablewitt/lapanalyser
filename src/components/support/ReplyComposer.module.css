@@ -47,8 +47,16 @@
 
 .attachBtn { font-size: 12px; }
 
+.leftControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .rightControls {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }

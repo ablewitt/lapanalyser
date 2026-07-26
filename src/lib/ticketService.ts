@@ -159,6 +159,7 @@ export async function uploadTicketAttachment(
     ticket_id: ticketId,
     message_id: messageId,
     uploader_id: uploaderId,
+    kind: 'image',
     storage_path: path,
     mime: file.type,
     size_bytes: file.size,
@@ -167,6 +168,23 @@ export async function uploadTicketAttachment(
     await supabase.storage.from(ATTACHMENTS_BUCKET).remove([path]);
     throw new Error(`Could not save attachment: ${rowErr.message}`);
   }
+}
+
+/** Attach a reference to a session on a message (no file). */
+export async function addSessionReference(
+  ticketId: string,
+  messageId: string,
+  uploaderId: string,
+  sessionId: string,
+): Promise<void> {
+  const { error } = await supabase.from('ticket_attachments').insert({
+    ticket_id: ticketId,
+    message_id: messageId,
+    uploader_id: uploaderId,
+    kind: 'session',
+    session_id: sessionId,
+  });
+  if (error) throw new Error(`Could not attach session: ${error.message}`);
 }
 
 /** Attachment rows for a ticket (RLS hides internal-note attachments). */

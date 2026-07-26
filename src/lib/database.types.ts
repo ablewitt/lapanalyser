@@ -252,9 +252,11 @@ export interface Database {
           ticket_id: string;
           message_id: string;
           uploader_id: string;
-          storage_path: string;
-          mime: string;
-          size_bytes: number;
+          kind: 'image' | 'session';
+          storage_path: string | null;
+          mime: string | null;
+          size_bytes: number | null;
+          session_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -262,15 +264,18 @@ export interface Database {
           ticket_id: string;
           message_id: string;
           uploader_id: string;
-          storage_path: string;
-          mime: string;
-          size_bytes: number;
+          kind?: 'image' | 'session';
+          storage_path?: string | null;
+          mime?: string | null;
+          size_bytes?: number | null;
+          session_id?: string | null;
           created_at?: string;
         };
         Update: {
-          storage_path?: string;
-          mime?: string;
-          size_bytes?: number;
+          storage_path?: string | null;
+          mime?: string | null;
+          size_bytes?: number | null;
+          session_id?: string | null;
         };
         Relationships: [];
       };

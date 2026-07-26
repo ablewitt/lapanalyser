@@ -1,25 +1,32 @@
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ATTACHMENT_MAX_BYTES, ATTACHMENT_MIME } from '../../lib/ticketService';
+import type { DbSessionRow } from '../../lib/sessionService';
 import styles from './ReplyComposer.module.css';
 
 /**
- * Shared reply box with an image picker. onSend receives the trimmed text and
- * the chosen files; the caller creates the message then uploads. `extraControls`
+ * Shared reply box with an image picker and (optionally) a session-reference
+ * picker. onSend receives the trimmed text, chosen files, and chosen session
+ * ids; the caller creates the message then uploads/attaches. `extraControls`
  * lets the admin thread slot in its internal-note toggle.
  */
 export default function ReplyComposer({
-  onSend, placeholder = 'Write a reply…', extraControls,
+  onSend, placeholder = 'Write a reply…', extraControls, sessions,
 }: {
-  onSend: (text: string, files: File[]) => Promise<void>;
+  onSend: (text: string, files: File[], sessionIds: string[]) => Promise<void>;
   placeholder?: string;
   extraControls?: ReactNode;
+  sessions?: DbSessionRow[];
 }) {
   const [text, setText] = useState('');
   const [files, setFiles] = useState<File[]>([]);
+  const [sessionIds, setSessionIds] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const sessionMap = new Map((sessions ?? []).map(s => [s.id, s]));
+  const availableSessions = (sessions ?? []).filter(s => !sessionIds.includes(s.id));
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -34,14 +41,17 @@ export default function ReplyComposer({
     if (inputRef.current) inputRef.current.value = '';
   }
 
+  const isEmpty = !text.trim() && files.length === 0 && sessionIds.length === 0;
+
   async function submit() {
-    if (!text.trim() && files.length === 0) return;
+    if (isEmpty) return;
     setSending(true);
     setError(null);
     try {
-      await onSend(text.trim(), files);
+      await onSend(text.trim(), files, sessionIds);
       setText('');
       setFiles([]);
+      setSessionIds([]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not send');
     } finally {
@@ -53,12 +63,18 @@ export default function ReplyComposer({
     <div className={styles.box}>
       <textarea value={text} onChange={e => setText(e.target.value)} placeholder={placeholder} />
 
-      {files.length > 0 && (
+      {(files.length > 0 || sessionIds.length > 0) && (
         <div className={styles.chips}>
           {files.map((f, i) => (
-            <span key={i} className={styles.chip}>
+            <span key={`f-${i}`} className={styles.chip}>
               {f.name}
               <button type="button" onClick={() => setFiles(fs => fs.filter((_, j) => j !== i))} aria-label="Remove">×</button>
+            </span>
+          ))}
+          {sessionIds.map(id => (
+            <span key={`s-${id}`} className={styles.chip}>
+              📁 {sessionMap.get(id)?.display_name || sessionMap.get(id)?.filename || 'session'}
+              <button type="button" onClick={() => setSessionIds(ids => ids.filter(x => x !== id))} aria-label="Remove">×</button>
             </span>
           ))}
         </div>
@@ -75,12 +91,26 @@ export default function ReplyComposer({
           hidden
           onChange={e => addFiles(e.target.files)}
         />
-        <button type="button" className={styles.attachBtn} onClick={() => inputRef.current?.click()}>
-          📎 Image
-        </button>
+        <div className={styles.leftControls}>
+          <button type="button" className={styles.attachBtn} onClick={() => inputRef.current?.click()}>
+            📎 Image
+          </button>
+          {availableSessions.length > 0 && (
+            <select
+              className={styles.attachBtn}
+              value=""
+              onChange={e => { if (e.target.value) setSessionIds(ids => [...ids, e.target.value]); }}
+            >
+              <option value="">📁 Attach session…</option>
+              {availableSessions.map(s => (
+                <option key={s.id} value={s.id}>{s.display_name || s.filename}</option>
+              ))}
+            </select>
+          )}
+        </div>
         <div className={styles.rightControls}>
           {extraControls}
-          <button onClick={submit} disabled={sending || (!text.trim() && files.length === 0)}>
+          <button onClick={submit} disabled={sending || isEmpty}>
             {sending ? 'Sending…' : 'Reply'}
           </button>
         </div>

@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '../../../store/auth';
 import {
-  fetchAllTickets, addTicketMessage, uploadTicketAttachment, updateTicketStatus,
-  fetchUsernames, fetchUnreadTicketIds, subscribeToNewTicketMessages, TICKET_STATUSES,
+  fetchAllTickets, addTicketMessage, uploadTicketAttachment, addSessionReference,
+  updateTicketStatus, fetchUsernames, fetchUnreadTicketIds, subscribeToNewTicketMessages,
+  TICKET_STATUSES,
 } from '../../../lib/ticketService';
 import type { TicketRow, TicketStatus } from '../../../lib/ticketService';
 import { useTicketMessages } from '../../../hooks/useTicketMessages';
@@ -98,6 +99,7 @@ export default function TicketsPanel() {
               key={selected.id}
               ticket={selected}
               authorId={user!.id}
+              ownerName={nameOf(selected.user_id)}
               onStatusChange={handleStatusChange}
             />
           ) : (
@@ -110,18 +112,20 @@ export default function TicketsPanel() {
 }
 
 function TicketThread({
-  ticket, authorId, onStatusChange,
+  ticket, authorId, ownerName, onStatusChange,
 }: {
   ticket: TicketRow;
   authorId: string;
+  ownerName: string;
   onStatusChange: (t: TicketRow, s: TicketStatus) => void;
 }) {
   const { messages, attachments, reload } = useTicketMessages(ticket.id);
   const [internal, setInternal] = useState(false);
 
-  async function send(text: string, files: File[]) {
+  async function send(text: string, files: File[], sessionIds: string[]) {
     const msg = await addTicketMessage(ticket.id, authorId, text, internal);
     for (const file of files) await uploadTicketAttachment(ticket.id, msg.id, authorId, file);
+    for (const sid of sessionIds) await addSessionReference(ticket.id, msg.id, authorId, sid);
     setInternal(false);
     await reload();
   }
@@ -141,14 +145,19 @@ function TicketThread({
       {ticket.session_id && <SessionRef sessionId={ticket.session_id} />}
 
       <div className={styles.messages}>
-        {messages.map(m => (
-          <div key={m.id} className={`${styles.message} ${m.is_internal ? styles.messageInternal : ''}`}>
-            {m.is_internal && <span className={styles.internalTag}>Internal note</span>}
-            {m.body && <div className={styles.messageBody}>{m.body}</div>}
-            <MessageAttachments attachments={attachments[m.id]} />
-            <div className={styles.messageTime}>{new Date(m.created_at).toLocaleString()}</div>
-          </div>
-        ))}
+        {messages.map(m => {
+          const fromOwner = m.author_id === ticket.user_id;
+          const cls = m.is_internal ? styles.messageInternal : fromOwner ? styles.fromUser : styles.fromStaff;
+          const who = m.is_internal ? 'Internal note' : fromOwner ? ownerName : (m.author_id === authorId ? 'You' : 'Support');
+          return (
+            <div key={m.id} className={`${styles.message} ${cls}`}>
+              <div className={styles.messageFrom}>{who}</div>
+              {m.body && <div className={styles.messageBody}>{m.body}</div>}
+              <MessageAttachments attachments={attachments[m.id]} />
+              <div className={styles.messageTime}>{new Date(m.created_at).toLocaleString()}</div>
+            </div>
+          );
+        })}
       </div>
 
       <ReplyComposer
