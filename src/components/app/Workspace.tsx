@@ -11,6 +11,7 @@ import ChartView from '../chart/ChartView';
 import MapView from '../map/MapView';
 import TableView from '../table/TableView';
 import SessionManager from '../sessions/SessionManager';
+import UserMenu from './UserMenu';
 import { useUiStore } from '../../store/ui';
 import { useAuthStore } from '../../store/auth';
 import { useSessionsStore } from '../../store/sessions';
@@ -30,7 +31,7 @@ export default function Workspace() {
   useSettingsSync();
   const { activeTab, isLoading, parseWarnings } = useUiStore();
   const clearWarnings = useUiStore(s => s.setParseWarnings);
-  const { user, isInitializing, signOut } = useAuthStore();
+  const { user, isInitializing } = useAuthStore();
   const { addSession } = useSessionsStore();
   const [managerOpen, setManagerOpen] = useState(false);
   const restoredUserRef = useRef<string | null>(null);
@@ -95,13 +96,6 @@ export default function Workspace() {
             <button style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => setManagerOpen(true)}>
               Sessions
             </button>
-            <button
-              style={{ fontSize: 11, padding: '2px 8px' }}
-              onClick={() => signOut()}
-              title={user.email}
-            >
-              Sign out
-            </button>
           </div>
         </div>
         <FileDropzone />
@@ -115,7 +109,7 @@ export default function Workspace() {
         <SessionTree />
         <GroupBuilder />
       </Sidebar>
-      <MainArea>
+      <MainArea headerRight={<UserMenu />}>
         {activeTab === 'chart' && <ChartView />}
         {activeTab === 'map' && <MapView />}
         {activeTab === 'table' && <TableView />}

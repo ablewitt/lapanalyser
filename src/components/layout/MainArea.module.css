@@ -7,10 +7,19 @@
 
 .tabs {
   display: flex;
+  align-items: center;
   gap: 4px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+  /* Own stacking context above .content so the account dropdown isn't
+     painted over by Leaflet's map panes/controls (z-index up to ~1000). */
+  position: relative;
+  z-index: 1000;
+}
+
+.headerRight {
+  margin-left: auto;
 }
 
 .content {

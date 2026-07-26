@@ -8,17 +8,20 @@ export interface Database {
           id: string;
           username: string | null;
           display_name: string | null;
+          role: 'user' | 'admin';
           created_at: string;
         };
         Insert: {
           id: string;
           username?: string | null;
           display_name?: string | null;
+          role?: 'user' | 'admin';
           created_at?: string;
         };
         Update: {
           username?: string | null;
           display_name?: string | null;
+          role?: 'user' | 'admin';
         };
         Relationships: [];
       };

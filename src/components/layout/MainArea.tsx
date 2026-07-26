@@ -8,7 +8,7 @@ const TABS: { id: ActiveTab; label: string }[] = [
   { id: 'table', label: 'Table' },
 ];
 
-export default function MainArea({ children }: { children: ReactNode }) {
+export default function MainArea({ children, headerRight }: { children: ReactNode; headerRight?: ReactNode }) {
   const { activeTab, setActiveTab } = useUiStore();
   return (
     <main className={styles.main}>
@@ -22,6 +22,7 @@ export default function MainArea({ children }: { children: ReactNode }) {
             {t.label}
           </button>
         ))}
+        {headerRight && <div className={styles.headerRight}>{headerRight}</div>}
       </nav>
       <div className={styles.content}>{children}</div>
     </main>
