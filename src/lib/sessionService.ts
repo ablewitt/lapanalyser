@@ -153,6 +153,18 @@ export async function fetchUserSessions(): Promise<DbSessionRow[]> {
   return data ?? [];
 }
 
+/** Sessions belonging to a specific user. For admins (RLS bypass) this returns
+ *  the owner's sessions even when they aren't the caller. */
+export async function fetchSessionsForUser(userId: string): Promise<DbSessionRow[]> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function fetchSessionsByIds(ids: string[]): Promise<DbSessionRow[]> {
   if (ids.length === 0) return [];
   const { data, error } = await supabase

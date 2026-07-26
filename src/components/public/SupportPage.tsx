@@ -9,6 +9,7 @@ import { createTicket, TICKET_CATEGORIES } from '../../lib/ticketService';
 import type { TicketCategory } from '../../lib/ticketService';
 import { fetchUserSessions } from '../../lib/sessionService';
 import type { DbSessionRow } from '../../lib/sessionService';
+import ImageAttachField from '../support/ImageAttachField';
 
 const CHANNELS = [
   { ico: '📖', title: 'Documentation', body: 'Guides for uploading, lap detection, sectors and sharing.', cta: 'Read the docs →', to: '/docs' },
@@ -40,6 +41,7 @@ export default function SupportPage() {
   const [message, setMessage] = useState('');
   const [sessionId, setSessionId] = useState('');
   const [sessions, setSessions] = useState<DbSessionRow[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +58,7 @@ export default function SupportPage() {
     setSubmitting(true);
     setError(null);
     try {
-      await createTicket(user.id, subject.trim(), category, message.trim(), sessionId || null);
+      await createTicket(user.id, subject.trim(), category, message.trim(), sessionId || null, files);
       setSent(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not submit your ticket.');
@@ -148,6 +150,10 @@ export default function SupportPage() {
                 <label htmlFor="s-msg">How can we help?</label>
                 <textarea id="s-msg" required value={message} onChange={e => setMessage(e.target.value)} />
               </div>
+              <div className={styles.field}>
+                <label>Screenshots <span style={{ color: 'var(--apex-dim)' }}>(optional)</span></label>
+                <ImageAttachField files={files} onChange={setFiles} />
+              </div>
               {error && <div className={styles.callout} style={{ borderLeftColor: 'var(--danger)' }}>{error}</div>}
               <button
                 type="submit"
@@ -159,7 +165,11 @@ export default function SupportPage() {
               </button>
             </form>
           )}
-          <div className={styles.formNote}>Prefer email? <a href="mailto:support@lapanalyser.com" style={{ color: 'var(--apex-red)' }}>support@lapanalyser.com</a></div>
+          {!user && (
+            <div className={styles.formNote}>
+              Support is handled in-app. <Link to="/auth" style={{ color: 'var(--apex-red)' }}>Sign up</Link> to send us a message and track replies.
+            </div>
+          )}
         </div>
       </div>
 

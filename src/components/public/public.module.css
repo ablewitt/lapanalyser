@@ -179,8 +179,8 @@
 .contactCard > p { color: var(--apex-dim); font-size: 14px; margin-bottom: 22px; }
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
 .field label { font-size: 12px; color: var(--apex-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-.field input, .field textarea { background: var(--apex-surface2); border: 1px solid var(--apex-border); border-radius: 6px; padding: 10px 12px; color: var(--apex-text); font: inherit; font-size: 14px; outline: none; transition: border-color 0.15s; }
-.field input:focus, .field textarea:focus { border-color: var(--apex-red); }
+.field input, .field select, .field textarea { background: var(--apex-surface2); border: 1px solid var(--apex-border); border-radius: 6px; padding: 10px 12px; color: var(--apex-text); font: inherit; font-size: 14px; outline: none; transition: border-color 0.15s; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--apex-red); }
 .field textarea { resize: vertical; min-height: 120px; }
 .formNote { margin-top: 14px; font-size: 13px; color: var(--apex-dim); text-align: center; }
 

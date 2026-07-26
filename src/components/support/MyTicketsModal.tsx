@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuthStore } from '../../store/auth';
 import {
   fetchMyTickets, createTicket, addTicketMessage, uploadTicketAttachment, addSessionReference,
@@ -11,6 +12,7 @@ import { useTicketMessages } from '../../hooks/useTicketMessages';
 import SessionRef from './SessionRef';
 import MessageAttachments from './MessageAttachments';
 import ReplyComposer from './ReplyComposer';
+import ImageAttachField from './ImageAttachField';
 import styles from './MyTicketsModal.module.css';
 
 const CATEGORY_LABELS: Record<TicketCategory, string> = {
@@ -47,7 +49,10 @@ export default function MyTicketsModal({ onClose }: { onClose: () => void }) {
     setCreating(false);
   }
 
-  return (
+  // Portal to <body> so Leaflet's map controls/attribution (rendered inside the
+  // stacking context of the tab bar this modal is triggered from) can't paint
+  // over it.
+  return createPortal(
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.header}>
@@ -83,7 +88,8 @@ export default function MyTicketsModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -99,6 +105,7 @@ function NewTicketForm({
   const [category, setCategory] = useState<TicketCategory>('other');
   const [message, setMessage] = useState('');
   const [sessionId, setSessionId] = useState('');
+  const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -107,7 +114,7 @@ function NewTicketForm({
     setSubmitting(true);
     setError(null);
     try {
-      const ticket = await createTicket(userId, subject.trim(), category, message.trim(), sessionId || null);
+      const ticket = await createTicket(userId, subject.trim(), category, message.trim(), sessionId || null, files);
       onCreated(ticket);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not create ticket.');
@@ -144,6 +151,10 @@ function NewTicketForm({
         <span>How can we help?</span>
         <textarea required value={message} onChange={e => setMessage(e.target.value)} />
       </label>
+      <div className={styles.field}>
+        <span>Screenshots (optional)</span>
+        <ImageAttachField files={files} onChange={setFiles} />
+      </div>
       {error && <div className={styles.error}>{error}</div>}
       <div className={styles.newFormActions}>
         <button type="button" onClick={onCancel}>Cancel</button>
