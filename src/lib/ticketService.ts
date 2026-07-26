@@ -3,6 +3,11 @@ import type { Database } from './database.types';
 
 export type TicketRow = Database['public']['Tables']['support_tickets']['Row'];
 export type TicketMessageRow = Database['public']['Tables']['support_messages']['Row'];
+export type TicketAttachmentRow = Database['public']['Tables']['ticket_attachments']['Row'];
+
+const ATTACHMENTS_BUCKET = 'ticket-attachments';
+export const ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
+export const ATTACHMENT_MIME = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 export type TicketCategory = TicketRow['category'];
 export type TicketStatus = TicketRow['status'];
 
@@ -131,6 +136,54 @@ export async function fetchUnreadCount(): Promise<number> {
   const { data, error } = await supabase.rpc('unread_message_count');
   if (error) return 0;
   return data ?? 0;
+}
+
+// ── Attachments ───────────────────────────────────────────────
+
+/** Upload an image for a message and record it. Path: {ticket}/{message}/{uuid}-{name}. */
+export async function uploadTicketAttachment(
+  ticketId: string,
+  messageId: string,
+  uploaderId: string,
+  file: File,
+): Promise<void> {
+  const safeName = file.name.replace(/[^\w.\-]+/g, '_');
+  const path = `${ticketId}/${messageId}/${crypto.randomUUID()}-${safeName}`;
+
+  const { error: upErr } = await supabase.storage.from(ATTACHMENTS_BUCKET).upload(path, file, {
+    contentType: file.type,
+  });
+  if (upErr) throw new Error(`Upload failed: ${upErr.message}`);
+
+  const { error: rowErr } = await supabase.from('ticket_attachments').insert({
+    ticket_id: ticketId,
+    message_id: messageId,
+    uploader_id: uploaderId,
+    storage_path: path,
+    mime: file.type,
+    size_bytes: file.size,
+  });
+  if (rowErr) {
+    await supabase.storage.from(ATTACHMENTS_BUCKET).remove([path]);
+    throw new Error(`Could not save attachment: ${rowErr.message}`);
+  }
+}
+
+/** Attachment rows for a ticket (RLS hides internal-note attachments). */
+export async function fetchTicketAttachments(ticketId: string): Promise<TicketAttachmentRow[]> {
+  const { data, error } = await supabase
+    .from('ticket_attachments')
+    .select('*')
+    .eq('ticket_id', ticketId)
+    .order('created_at', { ascending: true });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+/** Short-lived signed URL to display a private attachment. */
+export async function getAttachmentUrl(storagePath: string): Promise<string | null> {
+  const { data } = await supabase.storage.from(ATTACHMENTS_BUCKET).createSignedUrl(storagePath, 3600);
+  return data?.signedUrl ?? null;
 }
 
 /** Ids of tickets with messages the current user hasn't seen (RLS-scoped). */

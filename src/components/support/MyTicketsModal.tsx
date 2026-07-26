@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/auth';
-import { fetchMyTickets, addTicketMessage } from '../../lib/ticketService';
+import { fetchMyTickets, addTicketMessage, uploadTicketAttachment } from '../../lib/ticketService';
 import type { TicketRow } from '../../lib/ticketService';
 import { useTicketMessages } from '../../hooks/useTicketMessages';
 import SessionRef from './SessionRef';
+import MessageAttachments from './MessageAttachments';
+import ReplyComposer from './ReplyComposer';
 import styles from './MyTicketsModal.module.css';
 
 /**
@@ -59,22 +61,14 @@ export default function MyTicketsModal({ onClose }: { onClose: () => void }) {
 }
 
 function Thread({ ticket, authorId }: { ticket: TicketRow; authorId: string }) {
-  const { messages, reload } = useTicketMessages(ticket.id);
-  const [reply, setReply] = useState('');
-  const [sending, setSending] = useState(false);
+  const { messages, attachments, reload } = useTicketMessages(ticket.id);
 
   const closed = ticket.status === 'closed';
 
-  async function send() {
-    if (!reply.trim()) return;
-    setSending(true);
-    try {
-      await addTicketMessage(ticket.id, authorId, reply.trim());
-      setReply('');
-      await reload();
-    } finally {
-      setSending(false);
-    }
+  async function send(text: string, files: File[]) {
+    const msg = await addTicketMessage(ticket.id, authorId, text);
+    for (const file of files) await uploadTicketAttachment(ticket.id, msg.id, authorId, file);
+    await reload();
   }
 
   return (
@@ -84,19 +78,15 @@ function Thread({ ticket, authorId }: { ticket: TicketRow; authorId: string }) {
       <div className={styles.messages}>
         {messages.map(m => (
           <div key={m.id} className={`${styles.message} ${m.author_id === authorId ? styles.mine : styles.theirs}`}>
-            <div className={styles.messageBody}>{m.body}</div>
+            {m.body && <div className={styles.messageBody}>{m.body}</div>}
+            <MessageAttachments attachments={attachments[m.id]} />
             <div className={styles.messageTime}>{new Date(m.created_at).toLocaleString()}</div>
           </div>
         ))}
       </div>
-      {closed ? (
-        <div className={styles.muted}>This ticket is closed.</div>
-      ) : (
-        <div className={styles.replyBox}>
-          <textarea value={reply} onChange={e => setReply(e.target.value)} placeholder="Add a reply…" />
-          <button onClick={send} disabled={sending || !reply.trim()}>{sending ? 'Sending…' : 'Reply'}</button>
-        </div>
-      )}
+      {closed
+        ? <div className={styles.muted}>This ticket is closed.</div>
+        : <ReplyComposer onSend={send} placeholder="Add a reply…" />}
     </>
   );
 }

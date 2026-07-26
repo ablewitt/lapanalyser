@@ -246,6 +246,34 @@ export interface Database {
         };
         Relationships: [];
       };
+      ticket_attachments: {
+        Row: {
+          id: string;
+          ticket_id: string;
+          message_id: string;
+          uploader_id: string;
+          storage_path: string;
+          mime: string;
+          size_bytes: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          ticket_id: string;
+          message_id: string;
+          uploader_id: string;
+          storage_path: string;
+          mime: string;
+          size_bytes: number;
+          created_at?: string;
+        };
+        Update: {
+          storage_path?: string;
+          mime?: string;
+          size_bytes?: number;
+        };
+        Relationships: [];
+      };
       ticket_reads: {
         Row: {
           user_id: string;

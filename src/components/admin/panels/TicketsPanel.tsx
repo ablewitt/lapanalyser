@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '../../../store/auth';
 import {
-  fetchAllTickets, addTicketMessage, updateTicketStatus,
+  fetchAllTickets, addTicketMessage, uploadTicketAttachment, updateTicketStatus,
   fetchUsernames, fetchUnreadTicketIds, subscribeToNewTicketMessages, TICKET_STATUSES,
 } from '../../../lib/ticketService';
 import type { TicketRow, TicketStatus } from '../../../lib/ticketService';
 import { useTicketMessages } from '../../../hooks/useTicketMessages';
 import SessionRef from '../../support/SessionRef';
+import MessageAttachments from '../../support/MessageAttachments';
+import ReplyComposer from '../../support/ReplyComposer';
 import styles from '../AdminLayout.module.css';
 
 export default function TicketsPanel() {
@@ -114,22 +116,14 @@ function TicketThread({
   authorId: string;
   onStatusChange: (t: TicketRow, s: TicketStatus) => void;
 }) {
-  const { messages, reload } = useTicketMessages(ticket.id);
-  const [reply, setReply] = useState('');
+  const { messages, attachments, reload } = useTicketMessages(ticket.id);
   const [internal, setInternal] = useState(false);
-  const [sending, setSending] = useState(false);
 
-  async function send() {
-    if (!reply.trim()) return;
-    setSending(true);
-    try {
-      await addTicketMessage(ticket.id, authorId, reply.trim(), internal);
-      setReply('');
-      setInternal(false);
-      await reload();
-    } finally {
-      setSending(false);
-    }
+  async function send(text: string, files: File[]) {
+    const msg = await addTicketMessage(ticket.id, authorId, text, internal);
+    for (const file of files) await uploadTicketAttachment(ticket.id, msg.id, authorId, file);
+    setInternal(false);
+    await reload();
   }
 
   return (
@@ -150,22 +144,22 @@ function TicketThread({
         {messages.map(m => (
           <div key={m.id} className={`${styles.message} ${m.is_internal ? styles.messageInternal : ''}`}>
             {m.is_internal && <span className={styles.internalTag}>Internal note</span>}
-            <div className={styles.messageBody}>{m.body}</div>
+            {m.body && <div className={styles.messageBody}>{m.body}</div>}
+            <MessageAttachments attachments={attachments[m.id]} />
             <div className={styles.messageTime}>{new Date(m.created_at).toLocaleString()}</div>
           </div>
         ))}
       </div>
 
-      <div className={styles.replyBox}>
-        <textarea value={reply} onChange={e => setReply(e.target.value)} placeholder="Write a reply…" />
-        <div className={styles.replyActions}>
+      <ReplyComposer
+        onSend={send}
+        extraControls={
           <label className={styles.internalToggle}>
             <input type="checkbox" checked={internal} onChange={e => setInternal(e.target.checked)} />
-            Internal note (hidden from user)
+            Internal note
           </label>
-          <button onClick={send} disabled={sending || !reply.trim()}>{sending ? 'Sending…' : 'Reply'}</button>
-        </div>
-      </div>
+        }
+      />
     </>
   );
 }
