@@ -191,6 +191,61 @@ export interface Database {
         };
         Relationships: [];
       };
+      support_tickets: {
+        Row: {
+          id: string;
+          user_id: string;
+          subject: string;
+          category: 'bug' | 'feature' | 'account' | 'data' | 'other';
+          status: 'open' | 'in_progress' | 'resolved' | 'closed';
+          priority: 'low' | 'normal' | 'high';
+          session_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          subject: string;
+          category?: 'bug' | 'feature' | 'account' | 'data' | 'other';
+          status?: 'open' | 'in_progress' | 'resolved' | 'closed';
+          priority?: 'low' | 'normal' | 'high';
+          session_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          subject?: string;
+          category?: 'bug' | 'feature' | 'account' | 'data' | 'other';
+          status?: 'open' | 'in_progress' | 'resolved' | 'closed';
+          priority?: 'low' | 'normal' | 'high';
+          session_id?: string | null;
+        };
+        Relationships: [];
+      };
+      support_messages: {
+        Row: {
+          id: string;
+          ticket_id: string;
+          author_id: string;
+          body: string;
+          is_internal: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          ticket_id: string;
+          author_id: string;
+          body: string;
+          is_internal?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          body?: string;
+          is_internal?: boolean;
+        };
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {

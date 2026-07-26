@@ -3,12 +3,23 @@ import { Link } from 'react-router-dom';
 import PublicHeader from './PublicHeader';
 import PublicFooter from './PublicFooter';
 import styles from './public.module.css';
+import { useAuthStore } from '../../store/auth';
+import { createTicket, TICKET_CATEGORIES } from '../../lib/ticketService';
+import type { TicketCategory } from '../../lib/ticketService';
 
 const CHANNELS = [
   { ico: '📖', title: 'Documentation', body: 'Guides for uploading, lap detection, sectors and sharing.', cta: 'Read the docs →', to: '/docs' },
-  { ico: '✉️', title: 'Email support', body: 'Stuck on something specific? Send us the details and a sample file.', cta: 'support@lapanalyser.com', to: 'mailto:support@lapanalyser.com', external: true },
+  { ico: '🎫', title: 'Open a ticket', body: 'Signed in? Raise a support ticket and track our replies in the app.', cta: 'Go to the app →', to: '/app' },
   { ico: '💬', title: 'Community', body: 'Swap setups and track configs with other riders and drivers.', cta: 'Join the paddock →', to: '#' },
 ];
+
+const CATEGORY_LABELS: Record<TicketCategory, string> = {
+  bug: 'Bug / something broke',
+  feature: 'Feature request',
+  account: 'Account & billing',
+  data: 'Data / lap detection',
+  other: 'Something else',
+};
 
 const FAQ = [
   { q: 'What files can I upload?', a: 'RaceBox VBO telemetry files today. More formats can be added over time.' },
@@ -19,12 +30,27 @@ const FAQ = [
 ];
 
 export default function SupportPage() {
+  const { user } = useAuthStore();
   const [sent, setSent] = useState(false);
+  const [subject, setSubject] = useState('');
+  const [category, setCategory] = useState<TicketCategory>('other');
+  const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Stub: wire this to email / a support inbox when ready.
-    setSent(true);
+    if (!user) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await createTicket(user.id, subject.trim(), category, message.trim());
+      setSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not submit your ticket.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -48,9 +74,7 @@ export default function SupportPage() {
               <span className="ico" style={{ fontSize: 26, display: 'block', marginBottom: 14 }}>{c.ico}</span>
               <h3>{c.title}</h3>
               <p>{c.body}</p>
-              {c.external
-                ? <a href={c.to}>{c.cta}</a>
-                : <Link to={c.to}>{c.cta}</Link>}
+              <Link to={c.to}>{c.cta}</Link>
             </div>
           ))}
         </div>
@@ -70,28 +94,43 @@ export default function SupportPage() {
         </section>
 
         <div className={styles.contactCard}>
-          <h2>Send us a message</h2>
-          <p>Include your session file and what you expected to see — it helps us help you faster.</p>
-          {sent ? (
+          <h2>Open a support ticket</h2>
+          <p>Tell us what you expected to see — the more detail, the faster we can help.</p>
+
+          {!user ? (
             <div className={styles.callout} style={{ borderLeftColor: 'var(--apex-red)' }}>
-              <strong>Thanks!</strong> This is a placeholder form — wire it to your support inbox to start receiving messages.
+              <strong>Sign in to open a ticket.</strong> Tickets are tied to your account so you can
+              track our replies in the app. <Link to="/auth" style={{ color: 'var(--apex-red)' }}>Sign in or create an account →</Link>
+            </div>
+          ) : sent ? (
+            <div className={styles.callout} style={{ borderLeftColor: 'var(--apex-red)' }}>
+              <strong>Thanks — your ticket is in.</strong> We'll reply in the app. You can follow it under
+              Support in <Link to="/app" style={{ color: 'var(--apex-red)' }}>your account</Link>.
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
               <div className={styles.field}>
-                <label htmlFor="s-name">Name</label>
-                <input id="s-name" type="text" required />
+                <label htmlFor="s-subject">Subject</label>
+                <input id="s-subject" type="text" required value={subject} onChange={e => setSubject(e.target.value)} />
               </div>
               <div className={styles.field}>
-                <label htmlFor="s-email">Email</label>
-                <input id="s-email" type="email" required />
+                <label htmlFor="s-cat">Category</label>
+                <select id="s-cat" value={category} onChange={e => setCategory(e.target.value as TicketCategory)}>
+                  {TICKET_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+                </select>
               </div>
               <div className={styles.field}>
                 <label htmlFor="s-msg">How can we help?</label>
-                <textarea id="s-msg" required />
+                <textarea id="s-msg" required value={message} onChange={e => setMessage(e.target.value)} />
               </div>
-              <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} style={{ width: '100%', justifyContent: 'center' }}>
-                Send message →
+              {error && <div className={styles.callout} style={{ borderLeftColor: 'var(--danger)' }}>{error}</div>}
+              <button
+                type="submit"
+                className={`${styles.btn} ${styles.btnPrimary}`}
+                style={{ width: '100%', justifyContent: 'center' }}
+                disabled={submitting}
+              >
+                {submitting ? 'Sending…' : 'Submit ticket →'}
               </button>
             </form>
           )}

@@ -116,3 +116,84 @@
   letter-spacing: 0.05em;
   color: var(--text-dim);
 }
+
+/* ── Tickets ─────────────────────────────────────────────── */
+.muted { color: var(--text-dim); font-size: 13px; padding: 8px 2px; }
+
+.ticketFilters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.ticketFilters button { font-size: 12px; text-transform: capitalize; }
+.filterActive { border-color: var(--red); color: var(--text); }
+
+.ticketLayout {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.ticketList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+
+.ticketRow {
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ticketRowActive { border-color: var(--red); }
+.ticketRowTop { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ticketSubject { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ticketMeta { font-size: 11px; color: var(--text-dim); text-transform: capitalize; }
+
+.badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  text-transform: capitalize;
+  white-space: nowrap;
+  background: var(--surface2);
+  color: var(--text-dim);
+}
+.status_open { background: rgba(79, 142, 247, 0.18); color: var(--accent); }
+.status_in_progress { background: rgba(255, 176, 32, 0.18); color: #ffb020; }
+.status_resolved { background: rgba(60, 180, 75, 0.18); color: var(--success); }
+.status_closed { background: var(--surface2); color: var(--text-dim); }
+
+.ticketDetail {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.threadHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.threadSubject { font-size: 18px; }
+
+.messages { display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; }
+.message { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+.messageInternal { border-color: #ffb020; background: rgba(255, 176, 32, 0.06); }
+.internalTag { font-size: 10px; color: #ffb020; text-transform: uppercase; letter-spacing: 0.05em; }
+.messageBody { font-size: 13px; white-space: pre-wrap; margin-top: 2px; }
+.messageTime { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+
+.replyBox { margin-top: 12px; }
+.replyBox textarea { width: 100%; min-height: 70px; }
+.replyActions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.internalToggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); }
