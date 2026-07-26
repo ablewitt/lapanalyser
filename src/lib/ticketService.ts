@@ -133,6 +133,13 @@ export async function fetchUnreadCount(): Promise<number> {
   return data ?? 0;
 }
 
+/** Ids of tickets with messages the current user hasn't seen (RLS-scoped). */
+export async function fetchUnreadTicketIds(): Promise<string[]> {
+  const { data, error } = await supabase.rpc('unread_ticket_ids');
+  if (error) return [];
+  return data ?? [];
+}
+
 /** Mark a ticket read up to now for the given user. Best-effort. */
 export async function markTicketRead(userId: string, ticketId: string): Promise<void> {
   await supabase

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '../../../store/auth';
 import {
   fetchAllTickets, addTicketMessage, updateTicketStatus,
-  fetchUsernames, TICKET_STATUSES,
+  fetchUsernames, fetchUnreadTicketIds, subscribeToNewTicketMessages, TICKET_STATUSES,
 } from '../../../lib/ticketService';
 import type { TicketRow, TicketStatus } from '../../../lib/ticketService';
 import { useTicketMessages } from '../../../hooks/useTicketMessages';
@@ -14,6 +14,7 @@ export default function TicketsPanel() {
   const [usernames, setUsernames] = useState<Record<string, string | null>>({});
   const [statusFilter, setStatusFilter] = useState<TicketStatus | ''>('');
   const [selected, setSelected] = useState<TicketRow | null>(null);
+  const [unreadIds, setUnreadIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
   const loadTickets = useCallback(async () => {
@@ -21,6 +22,7 @@ export default function TicketsPanel() {
       const rows = await fetchAllTickets(statusFilter || undefined);
       setTickets(rows);
       setUsernames(await fetchUsernames([...new Set(rows.map(r => r.user_id))]));
+      setUnreadIds(new Set(await fetchUnreadTicketIds()));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load tickets');
     }
@@ -28,7 +30,23 @@ export default function TicketsPanel() {
 
   useEffect(() => { loadTickets(); }, [loadTickets]);
 
+  // The admin page doesn't mount the app's UserMenu subscription, so refresh
+  // the list and unread markers here when any ticket message comes in.
+  useEffect(() => subscribeToNewTicketMessages(() => loadTickets()), [loadTickets]);
+
   const nameOf = (id: string) => usernames[id] ?? id.slice(0, 8);
+
+  // Opening a ticket marks it read (via useTicketMessages); clear its dot now
+  // for instant feedback rather than waiting on the round-trip.
+  function selectTicket(ticket: TicketRow) {
+    setSelected(ticket);
+    setUnreadIds(prev => {
+      if (!prev.has(ticket.id)) return prev;
+      const next = new Set(prev);
+      next.delete(ticket.id);
+      return next;
+    });
+  }
 
   async function handleStatusChange(ticket: TicketRow, status: TicketStatus) {
     await updateTicketStatus(ticket.id, status);
@@ -57,10 +75,13 @@ export default function TicketsPanel() {
             <button
               key={t.id}
               className={`${styles.ticketRow} ${selected?.id === t.id ? styles.ticketRowActive : ''}`}
-              onClick={() => setSelected(t)}
+              onClick={() => selectTicket(t)}
             >
               <div className={styles.ticketRowTop}>
-                <span className={styles.ticketSubject}>{t.subject}</span>
+                <span className={styles.ticketSubject}>
+                  {unreadIds.has(t.id) && <span className={styles.unreadDot} aria-label="Unread messages" />}
+                  {t.subject}
+                </span>
                 <span className={`${styles.badge} ${styles[`status_${t.status}`]}`}>{t.status.replace('_', ' ')}</span>
               </div>
               <div className={styles.ticketMeta}>{nameOf(t.user_id)} · {t.category}</div>

@@ -273,6 +273,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: number;
       };
+      unread_ticket_ids: {
+        Args: Record<string, never>;
+        Returns: string[];
+      };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
