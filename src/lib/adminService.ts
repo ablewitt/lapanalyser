@@ -53,8 +53,20 @@ export async function setUserRole(targetId: string, role: 'user' | 'admin'): Pro
 }
 
 export async function deleteUser(targetId: string): Promise<void> {
+  // Collect the user's session file paths first (their session rows cascade
+  // away with the account). Then delete the account, then remove the files via
+  // the Storage API — direct SQL deletes on storage tables are blocked, and
+  // admin RLS bypass permits the API removal.
+  const { data: sessions } = await supabase
+    .from('sessions')
+    .select('storage_path')
+    .eq('user_id', targetId);
+  const paths = (sessions ?? []).map(s => s.storage_path).filter(Boolean);
+
   const { error } = await supabase.rpc('admin_delete_user', { target_id: targetId });
   if (error) throw new Error(error.message);
+
+  if (paths.length) await supabase.storage.from('session-files').remove(paths);
 }
 
 // ── Session management ────────────────────────────────────────
