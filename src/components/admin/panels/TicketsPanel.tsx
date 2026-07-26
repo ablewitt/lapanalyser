@@ -6,6 +6,7 @@ import {
 } from '../../../lib/ticketService';
 import type { TicketRow, TicketStatus } from '../../../lib/ticketService';
 import { useTicketMessages } from '../../../hooks/useTicketMessages';
+import SessionRef from '../../support/SessionRef';
 import styles from '../AdminLayout.module.css';
 
 export default function TicketsPanel() {
@@ -142,6 +143,8 @@ function TicketThread({
           {TICKET_STATUSES.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
         </select>
       </div>
+
+      {ticket.session_id && <SessionRef sessionId={ticket.session_id} />}
 
       <div className={styles.messages}>
         {messages.map(m => (

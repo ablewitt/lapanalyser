@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import styles from '../../App.module.css';
 import Logo from '../brand/Logo';
 import Sidebar from '../layout/Sidebar';
@@ -35,6 +36,7 @@ export default function Workspace() {
   const { addSession } = useSessionsStore();
   const [managerOpen, setManagerOpen] = useState(false);
   const restoredUserRef = useRef<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Save to sessionStorage whenever sessions change — subscribed at the store
   // level so it fires synchronously on every addSession/removeSession, bypassing
@@ -83,6 +85,29 @@ export default function Workspace() {
       .catch(err => console.warn('Session restore failed:', err));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, isInitializing]);
+
+  // Deep link from a support ticket: /app?openSession=<id> loads that session
+  // into the workspace. Waits until authenticated so the fetch passes RLS, then
+  // strips the param so a refresh doesn't reload it.
+  useEffect(() => {
+    const openId = searchParams.get('openSession');
+    if (!openId || !user || isInitializing) return;
+
+    const next = new URLSearchParams(searchParams);
+    next.delete('openSession');
+    setSearchParams(next, { replace: true });
+
+    if (useSessionsStore.getState().sessions.some(s => s.id === openId)) return;
+    fetchSessionsByIds([openId])
+      .then(async rows => {
+        const row = rows[0];
+        if (!row) return;
+        const content = await downloadSessionContent(row.storage_path);
+        const result = await parseVboContent(row.filename, content);
+        addSession({ ...rekeySession(result.session, row.id), displayName: row.display_name });
+      })
+      .catch(e => console.warn('Failed to open referenced session', openId, e));
+  }, [searchParams, setSearchParams, user, isInitializing, addSession]);
 
   if (!user) return null; // guarded by the route; satisfies types
 

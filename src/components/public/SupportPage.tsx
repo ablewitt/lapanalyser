@@ -3,9 +3,12 @@ import { Link } from 'react-router-dom';
 import PublicHeader from './PublicHeader';
 import PublicFooter from './PublicFooter';
 import styles from './public.module.css';
+import { useEffect } from 'react';
 import { useAuthStore } from '../../store/auth';
 import { createTicket, TICKET_CATEGORIES } from '../../lib/ticketService';
 import type { TicketCategory } from '../../lib/ticketService';
+import { fetchUserSessions } from '../../lib/sessionService';
+import type { DbSessionRow } from '../../lib/sessionService';
 
 const CHANNELS = [
   { ico: '📖', title: 'Documentation', body: 'Guides for uploading, lap detection, sectors and sharing.', cta: 'Read the docs →', to: '/docs' },
@@ -35,8 +38,17 @@ export default function SupportPage() {
   const [subject, setSubject] = useState('');
   const [category, setCategory] = useState<TicketCategory>('other');
   const [message, setMessage] = useState('');
+  const [sessionId, setSessionId] = useState('');
+  const [sessions, setSessions] = useState<DbSessionRow[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Offer the user's own sessions to attach — most support is about a
+  // specific recording ("this lap didn't detect").
+  useEffect(() => {
+    if (!user) return;
+    fetchUserSessions().then(setSessions).catch(() => setSessions([]));
+  }, [user]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,7 +56,7 @@ export default function SupportPage() {
     setSubmitting(true);
     setError(null);
     try {
-      await createTicket(user.id, subject.trim(), category, message.trim());
+      await createTicket(user.id, subject.trim(), category, message.trim(), sessionId || null);
       setSent(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not submit your ticket.');
@@ -119,6 +131,19 @@ export default function SupportPage() {
                   {TICKET_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
                 </select>
               </div>
+              {sessions.length > 0 && (
+                <div className={styles.field}>
+                  <label htmlFor="s-session">Related session <span style={{ color: 'var(--apex-dim)' }}>(optional)</span></label>
+                  <select id="s-session" value={sessionId} onChange={e => setSessionId(e.target.value)}>
+                    <option value="">— none —</option>
+                    {sessions.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {(s.display_name || s.filename)}{s.circuit_name ? ` · ${s.circuit_name}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className={styles.field}>
                 <label htmlFor="s-msg">How can we help?</label>
                 <textarea id="s-msg" required value={message} onChange={e => setMessage(e.target.value)} />

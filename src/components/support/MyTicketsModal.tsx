@@ -3,6 +3,7 @@ import { useAuthStore } from '../../store/auth';
 import { fetchMyTickets, addTicketMessage } from '../../lib/ticketService';
 import type { TicketRow } from '../../lib/ticketService';
 import { useTicketMessages } from '../../hooks/useTicketMessages';
+import SessionRef from './SessionRef';
 import styles from './MyTicketsModal.module.css';
 
 /**
@@ -79,6 +80,7 @@ function Thread({ ticket, authorId }: { ticket: TicketRow; authorId: string }) {
   return (
     <>
       <h3 className={styles.threadSubject}>{ticket.subject}</h3>
+      {ticket.session_id && <SessionRef sessionId={ticket.session_id} />}
       <div className={styles.messages}>
         {messages.map(m => (
           <div key={m.id} className={`${styles.message} ${m.author_id === authorId ? styles.mine : styles.theirs}`}>
