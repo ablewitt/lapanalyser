@@ -351,6 +351,30 @@ export interface Database {
         Args: { target_id: string };
         Returns: undefined;
       };
+      admin_stats_totals: {
+        Args: Record<string, never>;
+        Returns: {
+          users: number;
+          sessions: number;
+          public_sessions: number;
+          open_tickets: number;
+          storage_bytes: number;
+        }[];
+      };
+      admin_daily_counts: {
+        Args: { p_days?: number };
+        Returns: {
+          day: string;
+          signups: number;
+          sessions: number;
+          tickets: number;
+          active: number;
+        }[];
+      };
+      admin_top_circuits: {
+        Args: { p_limit?: number };
+        Returns: { circuit: string; sessions: number }[];
+      };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

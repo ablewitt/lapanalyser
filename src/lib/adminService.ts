@@ -11,32 +11,29 @@ export type AdminUser = Database['public']['Functions']['admin_list_users']['Ret
 // phases. This module stays a flat set of async fns like the other
 // *Service.ts files.
 
-export interface AdminOverview {
-  userCount: number;
-  sessionCount: number;
-  trackConfigCount: number;
-  publicSessionCount: number;
+export type StatsTotals = Database['public']['Functions']['admin_stats_totals']['Returns'][number];
+export type DailyCount = Database['public']['Functions']['admin_daily_counts']['Returns'][number];
+export type TopCircuit = Database['public']['Functions']['admin_top_circuits']['Returns'][number];
+
+/** Headline totals for the dashboard (users, sessions, public, open tickets, storage). */
+export async function fetchStatsTotals(): Promise<StatsTotals | null> {
+  const { data, error } = await supabase.rpc('admin_stats_totals');
+  if (error) throw new Error(error.message);
+  return data?.[0] ?? null;
 }
 
-/**
- * Headline counts for the admin dashboard. Uses count-only (head) queries so
- * no row data crosses the wire. Requires the caller to be an admin — the
- * counts respect RLS, which grants admins full visibility via is_admin().
- */
-export async function fetchAdminOverview(): Promise<AdminOverview> {
-  const [users, sessions, configs, publicSessions] = await Promise.all([
-    supabase.from('profiles').select('id', { count: 'exact', head: true }),
-    supabase.from('sessions').select('id', { count: 'exact', head: true }),
-    supabase.from('track_configs').select('id', { count: 'exact', head: true }),
-    supabase.from('sessions').select('id', { count: 'exact', head: true }).eq('is_public', true),
-  ]);
+/** Zero-filled daily activity for the last N days. */
+export async function fetchDailyCounts(days: number): Promise<DailyCount[]> {
+  const { data, error } = await supabase.rpc('admin_daily_counts', { p_days: days });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
 
-  return {
-    userCount: users.count ?? 0,
-    sessionCount: sessions.count ?? 0,
-    trackConfigCount: configs.count ?? 0,
-    publicSessionCount: publicSessions.count ?? 0,
-  };
+/** Top circuits by session count. */
+export async function fetchTopCircuits(limit = 8): Promise<TopCircuit[]> {
+  const { data, error } = await supabase.rpc('admin_top_circuits', { p_limit: limit });
+  if (error) throw new Error(error.message);
+  return data ?? [];
 }
 
 // ── User management ───────────────────────────────────────────
