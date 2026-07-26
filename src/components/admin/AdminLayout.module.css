@@ -144,6 +144,19 @@
   width: 100%; max-width: 360px; margin-bottom: 14px; font-size: 13px;
 }
 
+/* ── Dashboard charts ────────────────────────────────────── */
+.chartHead { display: flex; align-items: center; justify-content: space-between; margin: 28px 0 12px; }
+.chartTitle { font-size: 15px; }
+.chartCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 12px 6px;
+}
+.rangeToggle { display: flex; gap: 4px; }
+.rangeToggle button { font-size: 12px; padding: 3px 10px; }
+.rangeActive { border-color: var(--red); color: var(--text); }
+
 /* ── Audit log ───────────────────────────────────────────── */
 .auditHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .auditFilters {
