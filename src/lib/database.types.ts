@@ -194,7 +194,7 @@ export interface Database {
       support_tickets: {
         Row: {
           id: string;
-          user_id: string;
+          user_id: string | null;
           subject: string;
           category: 'bug' | 'feature' | 'account' | 'data' | 'other';
           status: 'open' | 'in_progress' | 'resolved' | 'closed';
@@ -227,7 +227,7 @@ export interface Database {
         Row: {
           id: string;
           ticket_id: string;
-          author_id: string;
+          author_id: string | null;
           body: string;
           is_internal: boolean;
           created_at: string;
@@ -251,7 +251,7 @@ export interface Database {
           id: string;
           ticket_id: string;
           message_id: string;
-          uploader_id: string;
+          uploader_id: string | null;
           kind: 'image' | 'session';
           storage_path: string | null;
           mime: string | null;
@@ -309,6 +309,27 @@ export interface Database {
       unread_ticket_ids: {
         Args: Record<string, never>;
         Returns: string[];
+      };
+      admin_list_users: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          username: string | null;
+          email: string;
+          role: 'user' | 'admin';
+          created_at: string;
+          last_sign_in_at: string | null;
+          session_count: number;
+          storage_bytes: number;
+        }[];
+      };
+      admin_set_role: {
+        Args: { target_id: string; new_role: string };
+        Returns: undefined;
+      };
+      admin_delete_user: {
+        Args: { target_id: string };
+        Returns: undefined;
       };
     };
     Enums: { [_ in never]: never };

@@ -25,7 +25,8 @@ export default function TicketsPanel() {
     try {
       const rows = await fetchAllTickets(statusFilter || undefined);
       setTickets(rows);
-      setUsernames(await fetchUsernames([...new Set(rows.map(r => r.user_id))]));
+      const ownerIds = rows.map(r => r.user_id).filter((id): id is string => !!id);
+      setUsernames(await fetchUsernames([...new Set(ownerIds)]));
       setUnreadIds(new Set(await fetchUnreadTicketIds()));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load tickets');
@@ -38,7 +39,7 @@ export default function TicketsPanel() {
   // the list and unread markers here when any ticket message comes in.
   useEffect(() => subscribeToNewTicketMessages(() => loadTickets()), [loadTickets]);
 
-  const nameOf = (id: string) => usernames[id] ?? id.slice(0, 8);
+  const nameOf = (id: string | null) => (id ? usernames[id] ?? id.slice(0, 8) : '(deleted user)');
 
   // Opening a ticket marks it read (via useTicketMessages); clear its dot now
   // for instant feedback rather than waiting on the round-trip.
