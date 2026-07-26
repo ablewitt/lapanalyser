@@ -144,6 +144,20 @@
   width: 100%; max-width: 360px; margin-bottom: 14px; font-size: 13px;
 }
 
+/* ── Audit log ───────────────────────────────────────────── */
+.auditHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.auditFilters {
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin-bottom: 16px;
+}
+.auditFilters label {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim);
+}
+.auditFilters input, .auditFilters select { font-size: 13px; color: var(--text); }
+.auditTime { white-space: nowrap; color: var(--text-dim); }
+.auditDetails { color: var(--text-dim); }
+.auditMore { display: flex; justify-content: center; margin-top: 14px; }
+
 /* ── Tickets ─────────────────────────────────────────────── */
 .muted { color: var(--text-dim); font-size: 13px; padding: 8px 2px; }
 

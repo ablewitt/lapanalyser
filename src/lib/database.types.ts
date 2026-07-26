@@ -279,6 +279,26 @@ export interface Database {
         };
         Relationships: [];
       };
+      audit_log: {
+        Row: {
+          id: number;
+          created_at: string;
+          actor_id: string | null;
+          action: string;
+          target_type: string | null;
+          target_id: string | null;
+          metadata: Json;
+        };
+        Insert: {
+          actor_id?: string | null;
+          action: string;
+          target_type?: string | null;
+          target_id?: string | null;
+          metadata?: Json;
+        };
+        Update: never;
+        Relationships: [];
+      };
       ticket_reads: {
         Row: {
           user_id: string;

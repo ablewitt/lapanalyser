@@ -93,3 +93,51 @@ export async function setSessionPublic(id: string, isPublic: boolean): Promise<v
   const { error } = await supabase.from('sessions').update({ is_public: isPublic }).eq('id', id);
   if (error) throw new Error(error.message);
 }
+
+// ── Audit log ─────────────────────────────────────────────────
+
+export type AuditLogRow = Database['public']['Tables']['audit_log']['Row'];
+
+export interface AuditFilters {
+  from?: string;      // ISO date (inclusive lower bound)
+  to?: string;        // ISO date (inclusive upper bound)
+  actorId?: string;
+  action?: string;
+}
+
+/** Known audit actions, for the filter dropdown and friendly labels. */
+export const AUDIT_ACTIONS = [
+  'user.signup', 'user.role_change', 'user.delete',
+  'session.create', 'session.delete', 'session.visibility',
+  'session.share.add', 'session.share.remove',
+  'ticket.create', 'ticket.message', 'ticket.status',
+] as const;
+
+function applyAuditFilters<T>(query: T, filters: AuditFilters): T {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let q = query as any;
+  if (filters.from) q = q.gte('created_at', filters.from);
+  if (filters.to) q = q.lte('created_at', filters.to);
+  if (filters.actorId) q = q.eq('actor_id', filters.actorId);
+  if (filters.action) q = q.eq('action', filters.action);
+  return q as T;
+}
+
+export async function fetchAuditLog(filters: AuditFilters, limit: number, offset: number): Promise<AuditLogRow[]> {
+  const base = supabase.from('audit_log').select('*').order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+  const { data, error } = await applyAuditFilters(base, filters);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+/** Fetch every row matching the filters, paged, for CSV export. Capped to keep memory sane. */
+export async function fetchAllAuditRows(filters: AuditFilters, cap = 50000): Promise<AuditLogRow[]> {
+  const page = 1000;
+  const all: AuditLogRow[] = [];
+  for (let offset = 0; offset < cap; offset += page) {
+    const rows = await fetchAuditLog(filters, page, offset);
+    all.push(...rows);
+    if (rows.length < page) break;
+  }
+  return all;
+}

@@ -3,6 +3,7 @@ import DashboardPanel from './panels/DashboardPanel';
 import TicketsPanel from './panels/TicketsPanel';
 import UsersPanel from './panels/UsersPanel';
 import SessionsPanel from './panels/SessionsPanel';
+import AuditPanel from './panels/AuditPanel';
 
 /**
  * A self-contained admin section. Adding a feature to the admin panel means
@@ -24,5 +25,6 @@ export const ADMIN_MODULES: AdminModule[] = [
   { path: 'users', label: 'Users', icon: '👥', component: UsersPanel },
   { path: 'sessions', label: 'Sessions', icon: '📁', component: SessionsPanel },
   { path: 'tickets', label: 'Support', icon: '🎫', component: TicketsPanel },
-  // Later phases register here: analytics, audit log.
+  { path: 'audit', label: 'Audit log', icon: '📜', component: AuditPanel },
+  // Later phases register here: analytics.
 ];
