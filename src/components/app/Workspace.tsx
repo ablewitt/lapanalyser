@@ -12,7 +12,6 @@ import MapView from '../map/MapView';
 import TableView from '../table/TableView';
 import SessionManager from '../sessions/SessionManager';
 import UserMenu from './UserMenu';
-import MyTicketsModal from '../support/MyTicketsModal';
 import { useUiStore } from '../../store/ui';
 import { useAuthStore } from '../../store/auth';
 import { useSessionsStore } from '../../store/sessions';
@@ -35,7 +34,6 @@ export default function Workspace() {
   const { user, isInitializing } = useAuthStore();
   const { addSession } = useSessionsStore();
   const [managerOpen, setManagerOpen] = useState(false);
-  const [ticketsOpen, setTicketsOpen] = useState(false);
   const restoredUserRef = useRef<string | null>(null);
 
   // Save to sessionStorage whenever sessions change — subscribed at the store
@@ -98,9 +96,6 @@ export default function Workspace() {
             <button style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => setManagerOpen(true)}>
               Sessions
             </button>
-            <button style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => setTicketsOpen(true)}>
-              Support
-            </button>
           </div>
         </div>
         <FileDropzone />
@@ -120,7 +115,6 @@ export default function Workspace() {
         {activeTab === 'table' && <TableView />}
       </MainArea>
       {managerOpen && <SessionManager onClose={() => setManagerOpen(false)} />}
-      {ticketsOpen && <MyTicketsModal onClose={() => setTicketsOpen(false)} />}
     </div>
   );
 }

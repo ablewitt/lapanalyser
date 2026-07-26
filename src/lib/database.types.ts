@@ -246,12 +246,32 @@ export interface Database {
         };
         Relationships: [];
       };
+      ticket_reads: {
+        Row: {
+          user_id: string;
+          ticket_id: string;
+          last_read_at: string;
+        };
+        Insert: {
+          user_id: string;
+          ticket_id: string;
+          last_read_at?: string;
+        };
+        Update: {
+          last_read_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
       lookup_user: {
         Args: { query: string };
         Returns: { id: string; username: string | null }[];
+      };
+      unread_message_count: {
+        Args: Record<string, never>;
+        Returns: number;
       };
     };
     Enums: { [_ in never]: never };

@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth';
+import { useUnreadStore } from '../../store/unread';
+import { subscribeToNewTicketMessages } from '../../lib/ticketService';
+import MyTicketsModal from '../support/MyTicketsModal';
 import styles from './UserMenu.module.css';
 
 /**
@@ -12,7 +15,17 @@ export default function UserMenu() {
   const { user, profile, signOut } = useAuthStore();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [ticketsOpen, setTicketsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const unread = useUnreadStore(s => s.count);
+  const refreshUnread = useUnreadStore(s => s.refresh);
+
+  // Seed the unread badge and keep it live: any new ticket message the user is
+  // allowed to see re-queries the count (reading a thread clears it elsewhere).
+  useEffect(() => {
+    refreshUnread();
+    return subscribeToNewTicketMessages(() => refreshUnread());
+  }, [refreshUnread]);
 
   // Close on outside click or Escape.
   useEffect(() => {
@@ -43,11 +56,20 @@ export default function UserMenu() {
         title={user?.email}
       >
         <span className={styles.label}>{label}</span>
+        {unread > 0 && <span className={styles.dot} aria-label={`${unread} unread messages`} />}
         <span aria-hidden className={styles.caret}>▾</span>
       </button>
 
       {open && (
         <div className={styles.menu} role="menu">
+          <button
+            className={styles.item}
+            role="menuitem"
+            onClick={() => { setOpen(false); setTicketsOpen(true); }}
+          >
+            Support
+            {unread > 0 && <span className={styles.badge}>{unread}</span>}
+          </button>
           {profile?.role === 'admin' && (
             <button
               className={styles.item}
@@ -66,6 +88,8 @@ export default function UserMenu() {
           </button>
         </div>
       )}
+
+      {ticketsOpen && <MyTicketsModal onClose={() => setTicketsOpen(false)} />}
     </div>
   );
 }

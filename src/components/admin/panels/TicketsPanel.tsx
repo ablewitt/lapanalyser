@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '../../../store/auth';
 import {
-  fetchAllTickets, fetchTicketMessages, addTicketMessage, updateTicketStatus,
+  fetchAllTickets, addTicketMessage, updateTicketStatus,
   fetchUsernames, TICKET_STATUSES,
 } from '../../../lib/ticketService';
-import type { TicketRow, TicketMessageRow, TicketStatus } from '../../../lib/ticketService';
+import type { TicketRow, TicketStatus } from '../../../lib/ticketService';
+import { useTicketMessages } from '../../../hooks/useTicketMessages';
 import styles from '../AdminLayout.module.css';
 
 export default function TicketsPanel() {
@@ -91,16 +92,10 @@ function TicketThread({
   authorId: string;
   onStatusChange: (t: TicketRow, s: TicketStatus) => void;
 }) {
-  const [messages, setMessages] = useState<TicketMessageRow[]>([]);
+  const { messages, reload } = useTicketMessages(ticket.id);
   const [reply, setReply] = useState('');
   const [internal, setInternal] = useState(false);
   const [sending, setSending] = useState(false);
-
-  const load = useCallback(async () => {
-    setMessages(await fetchTicketMessages(ticket.id));
-  }, [ticket.id]);
-
-  useEffect(() => { load(); }, [load]);
 
   async function send() {
     if (!reply.trim()) return;
@@ -109,7 +104,7 @@ function TicketThread({
       await addTicketMessage(ticket.id, authorId, reply.trim(), internal);
       setReply('');
       setInternal(false);
-      await load();
+      await reload();
     } finally {
       setSending(false);
     }

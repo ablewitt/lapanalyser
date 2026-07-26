@@ -1,9 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/auth';
-import {
-  fetchMyTickets, fetchTicketMessages, addTicketMessage,
-} from '../../lib/ticketService';
-import type { TicketRow, TicketMessageRow } from '../../lib/ticketService';
+import { fetchMyTickets, addTicketMessage } from '../../lib/ticketService';
+import type { TicketRow } from '../../lib/ticketService';
+import { useTicketMessages } from '../../hooks/useTicketMessages';
 import styles from './MyTicketsModal.module.css';
 
 /**
@@ -59,15 +58,9 @@ export default function MyTicketsModal({ onClose }: { onClose: () => void }) {
 }
 
 function Thread({ ticket, authorId }: { ticket: TicketRow; authorId: string }) {
-  const [messages, setMessages] = useState<TicketMessageRow[]>([]);
+  const { messages, reload } = useTicketMessages(ticket.id);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
-
-  const load = useCallback(async () => {
-    setMessages(await fetchTicketMessages(ticket.id));
-  }, [ticket.id]);
-
-  useEffect(() => { load(); }, [load]);
 
   const closed = ticket.status === 'closed';
 
@@ -77,7 +70,7 @@ function Thread({ ticket, authorId }: { ticket: TicketRow; authorId: string }) {
     try {
       await addTicketMessage(ticket.id, authorId, reply.trim());
       setReply('');
-      await load();
+      await reload();
     } finally {
       setSending(false);
     }

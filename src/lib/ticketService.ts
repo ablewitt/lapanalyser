@@ -88,6 +88,61 @@ export async function updateTicketStatus(ticketId: string, status: TicketStatus)
   if (error) throw new Error(error.message);
 }
 
+/**
+ * Subscribe to new messages on a ticket. Fires onInsert with each inserted row
+ * the caller is permitted to see (Realtime enforces RLS, so internal notes never
+ * reach a non-admin subscriber). Returns an unsubscribe function.
+ */
+export function subscribeToTicketMessages(
+  ticketId: string,
+  onInsert: (message: TicketMessageRow) => void,
+): () => void {
+  const channel = supabase
+    .channel(`ticket-messages-${ticketId}`)
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `ticket_id=eq.${ticketId}` },
+      payload => onInsert(payload.new as TicketMessageRow),
+    )
+    .subscribe();
+  return () => { supabase.removeChannel(channel); };
+}
+
+/**
+ * Subscribe to every new ticket message the caller can see (no ticket filter).
+ * Used to keep the global unread indicator fresh. Returns an unsubscribe fn.
+ */
+export function subscribeToNewTicketMessages(
+  onInsert: (message: TicketMessageRow) => void,
+): () => void {
+  const channel = supabase
+    .channel('ticket-messages-all')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'support_messages' },
+      payload => onInsert(payload.new as TicketMessageRow),
+    )
+    .subscribe();
+  return () => { supabase.removeChannel(channel); };
+}
+
+/** Count of messages the current user hasn't seen (RLS-scoped). */
+export async function fetchUnreadCount(): Promise<number> {
+  const { data, error } = await supabase.rpc('unread_message_count');
+  if (error) return 0;
+  return data ?? 0;
+}
+
+/** Mark a ticket read up to now for the given user. Best-effort. */
+export async function markTicketRead(userId: string, ticketId: string): Promise<void> {
+  await supabase
+    .from('ticket_reads')
+    .upsert(
+      { user_id: userId, ticket_id: ticketId, last_read_at: new Date().toISOString() },
+      { onConflict: 'user_id,ticket_id' },
+    );
+}
+
 /** Resolve author user_ids to usernames for display (admin ticket views). */
 export async function fetchUsernames(userIds: string[]): Promise<Record<string, string | null>> {
   if (userIds.length === 0) return {};
