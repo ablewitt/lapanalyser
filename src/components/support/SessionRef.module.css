@@ -1,0 +1,18 @@
+.ref {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.icon { font-size: 18px; }
+
+.meta { flex: 1; min-width: 0; }
+.name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sub { font-size: 11px; color: var(--text-dim); }
+
+.openBtn { font-size: 12px; flex-shrink: 0; }

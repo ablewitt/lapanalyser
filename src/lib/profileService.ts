@@ -4,12 +4,13 @@ export interface ProfileRow {
   id: string;
   username: string | null;
   display_name: string | null;
+  role: 'user' | 'admin';
 }
 
 export async function loadProfile(userId: string): Promise<ProfileRow | null> {
   const { data } = await supabase
     .from('profiles')
-    .select('id, username, display_name')
+    .select('id, username, display_name, role')
     .eq('id', userId)
     .single();
   return data ?? null;
