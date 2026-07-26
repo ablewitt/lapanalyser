@@ -14,6 +14,13 @@ export type TicketStatus = TicketRow['status'];
 export const TICKET_CATEGORIES: TicketCategory[] = ['bug', 'feature', 'account', 'data', 'other'];
 export const TICKET_STATUSES: TicketStatus[] = ['open', 'in_progress', 'resolved', 'closed'];
 
+/** Validate an image attachment; returns an error message or null if OK. */
+export function validateImageFile(file: File): string | null {
+  if (!ATTACHMENT_MIME.includes(file.type)) return `${file.name}: unsupported type`;
+  if (file.size > ATTACHMENT_MAX_BYTES) return `${file.name}: over 5 MB`;
+  return null;
+}
+
 /**
  * Create a ticket plus its opening message. The message carries the body so the
  * ticket row stays metadata-only and the thread is uniform (opening message +
@@ -25,6 +32,7 @@ export async function createTicket(
   category: TicketCategory,
   body: string,
   sessionId?: string | null,
+  files: File[] = [],
 ): Promise<TicketRow> {
   const { data, error } = await supabase
     .from('support_tickets')
@@ -33,10 +41,14 @@ export async function createTicket(
     .single();
   if (error) throw new Error(error.message);
 
-  const { error: msgError } = await supabase
+  const { data: msg, error: msgError } = await supabase
     .from('support_messages')
-    .insert({ ticket_id: data.id, author_id: userId, body });
+    .insert({ ticket_id: data.id, author_id: userId, body })
+    .select()
+    .single();
   if (msgError) throw new Error(msgError.message);
+
+  for (const file of files) await uploadTicketAttachment(data.id, msg.id, userId, file);
 
   return data;
 }

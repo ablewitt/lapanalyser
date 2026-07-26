@@ -7,6 +7,8 @@ import {
 } from '../../../lib/ticketService';
 import type { TicketRow, TicketStatus } from '../../../lib/ticketService';
 import { useTicketMessages } from '../../../hooks/useTicketMessages';
+import { fetchSessionsForUser } from '../../../lib/sessionService';
+import type { DbSessionRow } from '../../../lib/sessionService';
 import SessionRef from '../../support/SessionRef';
 import MessageAttachments from '../../support/MessageAttachments';
 import ReplyComposer from '../../support/ReplyComposer';
@@ -122,6 +124,13 @@ function TicketThread({
 }) {
   const { messages, attachments, reload } = useTicketMessages(ticket.id);
   const [internal, setInternal] = useState(false);
+  const [ownerSessions, setOwnerSessions] = useState<DbSessionRow[]>([]);
+
+  // Offer the ticket owner's sessions so a reply can reference one.
+  useEffect(() => {
+    if (!ticket.user_id) { setOwnerSessions([]); return; }
+    fetchSessionsForUser(ticket.user_id).then(setOwnerSessions).catch(() => setOwnerSessions([]));
+  }, [ticket.user_id]);
 
   async function send(text: string, files: File[], sessionIds: string[]) {
     const msg = await addTicketMessage(ticket.id, authorId, text, internal);
@@ -163,6 +172,7 @@ function TicketThread({
 
       <ReplyComposer
         onSend={send}
+        sessions={ownerSessions}
         extraControls={
           <label className={styles.internalToggle}>
             <input type="checkbox" checked={internal} onChange={e => setInternal(e.target.checked)} />

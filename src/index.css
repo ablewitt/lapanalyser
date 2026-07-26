@@ -40,6 +40,8 @@ html, body, #root {
   background: var(--bg);
   color: var(--text);
   overflow: hidden;
+  /* Theme native controls (date pickers, select dropdowns, scrollbars). */
+  color-scheme: dark;
 }
 
 h1, h2, h3, h4 {
@@ -67,13 +69,26 @@ button.active {
 }
 button.danger:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
 
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus,
-input[type="search"]:focus,
-input:not([type]):focus,
+/* Baseline theming for native form controls. Element-level, so any component
+   that styles its inputs via a CSS-module class overrides these. */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 5px 8px;
+  transition: border-color 0.15s;
+}
+select { cursor: pointer; }
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
 textarea:focus {
   border-color: var(--red);
+  outline: none;
 }
 
 input[type="checkbox"] { accent-color: var(--red); cursor: pointer; }
