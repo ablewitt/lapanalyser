@@ -41,6 +41,20 @@
 .navLink { color: var(--apex-dim); transition: color 0.2s; }
 .navLink:hover { color: var(--apex-text); }
 
+/* Hamburger toggle — hidden on desktop, shown in the mobile media query. */
+.navToggle {
+  display: none;
+  flex-direction: column; justify-content: center; gap: 5px;
+  width: 42px; height: 42px; padding: 9px;
+  background: transparent; border: 1px solid var(--apex-border); border-radius: 9px;
+  cursor: pointer;
+}
+.navToggle:hover { border-color: var(--apex-red); }
+.navToggleBar { display: block; width: 100%; height: 2px; border-radius: 2px; background: var(--apex-text); transition: transform 0.22s ease, opacity 0.22s ease; }
+.navToggleActive .navToggleBar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.navToggleActive .navToggleBar:nth-child(2) { opacity: 0; }
+.navToggleActive .navToggleBar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
   font-weight: 700; border-radius: 6px; padding: 11px 22px; font-size: 14px;
@@ -186,8 +200,27 @@
 
 @media (max-width: 860px) {
   .heroGrid, .disc, .feat { grid-template-columns: 1fr; }
-  .navLinks { display: none; }
+  /* Collapse the nav links into a hamburger dropdown so they stay reachable
+     on mobile instead of disappearing. */
+  .navToggle { display: flex; }
+  .navLinks {
+    display: none;
+    position: absolute; top: 100%; left: 0; right: 0;
+    flex-direction: column; align-items: stretch; gap: 4px;
+    padding: 14px 20px 20px;
+    background: rgba(11, 13, 18, 0.97);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--apex-border);
+    box-shadow: 0 24px 40px rgba(0, 0, 0, 0.5);
+  }
+  .navLinksOpen { display: flex; }
+  .navLink { padding: 11px 4px; font-size: 15px; }
+  .navLinks .btn { width: 100%; justify-content: center; margin-top: 4px; }
   .docLayout { grid-template-columns: 1fr; gap: 24px; }
   .docNav { position: static; flex-direction: row; flex-wrap: wrap; }
   .supportGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .wrap { padding: 0 16px; }
 }
