@@ -91,7 +91,7 @@ export default function AuthPage() {
   return (
     <div className={styles.page}>
       <div className={styles.card}>
-        <Link to="/" className={styles.title} style={{ display: 'inline-block' }} aria-label="LapAnalyser home"><Logo size={22} /></Link>
+        <Link to="/" className={styles.title} style={{ display: 'inline-flex', alignItems: 'center' }} aria-label="LapAnalyser home"><Logo size={22} /></Link>
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
             <label htmlFor="email">Email</label>
