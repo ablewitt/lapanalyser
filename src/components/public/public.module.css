@@ -37,6 +37,10 @@
   border-bottom: 1px solid var(--apex-border);
 }
 .navInner { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+/* Wrap the logo in a flex box so it hugs the mark's height and sits on the
+   nav's true vertical centre (a plain <a> line box leaves descender space
+   that pushes the logo optically high). */
+.brandLink { display: inline-flex; align-items: center; }
 .navLinks { display: flex; gap: 30px; align-items: center; font-size: 14px; font-weight: 500; }
 .navLink { color: var(--apex-dim); transition: color 0.2s; }
 .navLink:hover { color: var(--apex-text); }

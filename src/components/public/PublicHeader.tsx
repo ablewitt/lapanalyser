@@ -25,7 +25,7 @@ export default function PublicHeader({ sections = false }: PublicHeaderProps) {
   return (
     <nav className={styles.nav}>
       <div className={`${styles.wrap} ${styles.navInner}`}>
-        <Link to="/" aria-label="LapAnalyser home" onClick={close}><Logo size={24} /></Link>
+        <Link className={styles.brandLink} to="/" aria-label="LapAnalyser home" onClick={close}><Logo size={24} /></Link>
 
         <button
           type="button"
