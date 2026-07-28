@@ -82,12 +82,12 @@ export default function SessionsPanel() {
           <tbody>
             {filtered.map(s => (
               <tr key={s.row.id}>
-                <td className={styles.userName}>{s.row.display_name || s.row.filename}</td>
-                <td>{s.ownerName || <span className={styles.dim}>—</span>}</td>
-                <td>{s.row.circuit_name || s.row.venue_raw || <span className={styles.dim}>—</span>}</td>
-                <td>{fmtDate(s.row.date_recorded)}</td>
-                <td>{s.row.lap_count ?? '—'}</td>
-                <td>
+                <td data-primary className={styles.userName}>{s.row.display_name || s.row.filename}</td>
+                <td data-label="Owner">{s.ownerName || <span className={styles.dim}>—</span>}</td>
+                <td data-label="Circuit">{s.row.circuit_name || s.row.venue_raw || <span className={styles.dim}>—</span>}</td>
+                <td data-label="Date" className={styles.num}>{fmtDate(s.row.date_recorded)}</td>
+                <td data-label="Laps" className={styles.num}>{s.row.lap_count ?? '—'}</td>
+                <td data-label="Visibility">
                   <label className={styles.switch}>
                     <input
                       type="checkbox"
@@ -98,7 +98,7 @@ export default function SessionsPanel() {
                     {s.row.is_public ? 'public' : 'private'}
                   </label>
                 </td>
-                <td className={styles.rowActions}>
+                <td data-label="" className={styles.rowActions}>
                   <button onClick={() => navigate(`/app?openSession=${s.row.id}`)}>Open</button>
                   <button className={styles.dangerBtn} disabled={busy === s.row.id} onClick={() => remove(s)}>Delete</button>
                 </td>

@@ -8,20 +8,38 @@ const TABS: { id: ActiveTab; label: string }[] = [
   { id: 'table', label: 'Table' },
 ];
 
-export default function MainArea({ children, headerRight }: { children: ReactNode; headerRight?: ReactNode }) {
+interface MainAreaProps {
+  children: ReactNode;
+  headerRight?: ReactNode;
+  /** When provided, renders a hamburger (mobile only) to open the sidebar drawer. */
+  onMenuToggle?: () => void;
+}
+
+export default function MainArea({ children, headerRight, onMenuToggle }: MainAreaProps) {
   const { activeTab, setActiveTab } = useUiStore();
   return (
     <main className={styles.main}>
       <nav className={styles.tabs}>
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            className={activeTab === t.id ? 'active' : ''}
-            onClick={() => setActiveTab(t.id)}
-          >
-            {t.label}
+        {onMenuToggle && (
+          <button className={styles.menuBtn} aria-label="Open menu" onClick={onMenuToggle}>
+            <span className={styles.menuBar} />
+            <span className={styles.menuBar} />
+            <span className={styles.menuBar} />
           </button>
-        ))}
+        )}
+        <div className={styles.seg} role="tablist" aria-label="View">
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={activeTab === t.id}
+              className={`${styles.segBtn} ${activeTab === t.id ? styles.segActive : ''}`}
+              onClick={() => setActiveTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
         {headerRight && <div className={styles.headerRight}>{headerRight}</div>}
       </nav>
       <div className={styles.content}>{children}</div>

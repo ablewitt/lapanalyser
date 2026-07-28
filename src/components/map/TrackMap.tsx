@@ -57,6 +57,10 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
   const canvasLayerRef = useRef<TelemetryCanvasLayer | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+  // Floating layer panel: expanded on desktop, collapsed to its button on phones
+  // so the map keeps the full pane.
+  const [controlsOpen, setControlsOpen] = useState(() =>
+    typeof window === 'undefined' ? true : window.innerWidth > 768);
 
   const handleMapReady = useCallback((m: L.Map) => {
     mapRef.current = m;
@@ -216,39 +220,11 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
 
   return (
     <div className={styles.container} ref={containerRef} style={(addingSector || addingSpeedTrap) ? { cursor: 'crosshair' } : undefined}>
-      <div className={styles.controls}>
-        <span className={styles.label}>Base:</span>
-        {(['off', 'dark', 'osm', 'satellite'] as const).map(bm => (
-          <button key={bm} className={baseMap === bm ? 'active' : ''} onClick={() => setBaseMap(bm)}>
-            {bm === 'off' ? 'Off' : bm === 'dark' ? 'Dark' : bm === 'osm' ? 'Streets' : 'Satellite'}
-          </button>
-        ))}
-        <span className={styles.divider} />
-        <span className={styles.label}>Heatmap:</span>
-        {(['off', 'velocityKmh', 'longAccG', 'leanAngleDeg'] as HeatChannel[]).map(ch => (
-          <button
-            key={ch}
-            className={heatChannel === ch ? 'active' : ''}
-            onClick={() => setHeatChannel(ch)}
-          >
-            {ch === 'off' ? 'Off' : ch === 'velocityKmh' ? 'Speed' : ch === 'longAccG' ? 'Long Acc' : 'Lean Angle'}
-          </button>
-        ))}
-        {showVisibilityControls && (
-          <>
-            <span className={styles.divider} />
-            <span className={styles.label}>Show:</span>
-            <button className={storedShowSectors ? 'active' : ''} onClick={() => setMapShowSectors(!storedShowSectors)}>Sectors</button>
-            <button className={storedShowEvents ? 'active' : ''} onClick={() => setMapShowEvents(!storedShowEvents)}>Events</button>
-            <button className={storedShowTraps ? 'active' : ''} onClick={() => setMapShowTraps(!storedShowTraps)}>Traps</button>
-          </>
-        )}
-      </div>
       <MapContainer
         center={center}
         zoom={16}
         maxZoom={22}
-        style={{ height: 'calc(100% - 40px)', width: '100%' }}
+        style={{ flex: '1 1 0', minHeight: 0, width: '100%' }}
       >
         <MapReady onReady={handleMapReady} />
         {baseMap === 'osm' && (
@@ -323,6 +299,55 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
           />
         )}
       </MapContainer>
+
+      <div className={styles.hud}>
+        <button
+          className={styles.hudToggle}
+          aria-expanded={controlsOpen}
+          onClick={() => setControlsOpen(o => !o)}
+          title="Map layers"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M12 3l9 5-9 5-9-5 9-5Z" />
+            <path d="M3 13l9 5 9-5" />
+          </svg>
+          <span className={styles.hudToggleLabel}>Layers</span>
+          <span className={`${styles.hudCaret} ${controlsOpen ? styles.hudCaretOpen : ''}`} aria-hidden>▾</span>
+        </button>
+
+        {controlsOpen && (
+          <div className={styles.hudBody}>
+            <div className={styles.group}>
+              <span className={styles.groupLabel}>Base map</span>
+              <div className={styles.chips}>
+                {([['off', 'Off'], ['dark', 'Dark'], ['osm', 'Streets'], ['satellite', 'Satellite']] as const).map(([val, label]) => (
+                  <button key={val} className={`${styles.chip} ${baseMap === val ? styles.chipOn : ''}`} onClick={() => setBaseMap(val)}>{label}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.group}>
+              <span className={styles.groupLabel}>Heatmap</span>
+              <div className={styles.chips}>
+                {([['off', 'Off'], ['velocityKmh', 'Speed'], ['longAccG', 'Long Acc'], ['leanAngleDeg', 'Lean Angle']] as [HeatChannel, string][]).map(([val, label]) => (
+                  <button key={val} className={`${styles.chip} ${heatChannel === val ? styles.chipOn : ''}`} onClick={() => setHeatChannel(val)}>{label}</button>
+                ))}
+              </div>
+            </div>
+
+            {showVisibilityControls && (
+              <div className={styles.group}>
+                <span className={styles.groupLabel}>Overlays</span>
+                <div className={styles.chips}>
+                  <button className={`${styles.chip} ${storedShowSectors ? styles.chipOn : ''}`} onClick={() => setMapShowSectors(!storedShowSectors)}>Sectors</button>
+                  <button className={`${styles.chip} ${storedShowEvents ? styles.chipOn : ''}`} onClick={() => setMapShowEvents(!storedShowEvents)}>Events</button>
+                  <button className={`${styles.chip} ${storedShowTraps ? styles.chipOn : ''}`} onClick={() => setMapShowTraps(!storedShowTraps)}>Traps</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 });

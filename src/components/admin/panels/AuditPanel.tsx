@@ -130,10 +130,10 @@ export default function AuditPanel() {
           <tbody>
             {rows.map(r => (
               <tr key={r.id}>
-                <td className={styles.auditTime}>{new Date(r.created_at).toLocaleString()}</td>
-                <td>{nameOf(r.actor_id)}</td>
-                <td>{ACTION_LABELS[r.action] ?? r.action}</td>
-                <td className={styles.auditDetails}>{describe(r, nameOf)}</td>
+                <td data-label="Time" className={styles.auditTime}>{new Date(r.created_at).toLocaleString()}</td>
+                <td data-label="Actor">{nameOf(r.actor_id)}</td>
+                <td data-primary>{ACTION_LABELS[r.action] ?? r.action}</td>
+                <td data-label="Details" className={styles.auditDetails}>{describe(r, nameOf)}</td>
               </tr>
             ))}
             {rows.length === 0 && !loading && (

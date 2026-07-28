@@ -35,6 +35,7 @@ export default function Workspace() {
   const { user, isInitializing } = useAuthStore();
   const { addSession } = useSessionsStore();
   const [managerOpen, setManagerOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const restoredUserRef = useRef<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -113,7 +114,7 @@ export default function Workspace() {
 
   return (
     <div className={styles.app}>
-      <Sidebar>
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)}>
         <div className={styles.sidebarHeader}>
           <Logo size={20} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -134,7 +135,7 @@ export default function Workspace() {
         <SessionTree />
         <GroupBuilder />
       </Sidebar>
-      <MainArea headerRight={<UserMenu />}>
+      <MainArea headerRight={<UserMenu />} onMenuToggle={() => setSidebarOpen(true)}>
         {activeTab === 'chart' && <ChartView />}
         {activeTab === 'map' && <MapView />}
         {activeTab === 'table' && <TableView />}

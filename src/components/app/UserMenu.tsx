@@ -45,6 +45,7 @@ export default function UserMenu() {
   }, [open]);
 
   const label = profile?.username ?? user?.email ?? 'Account';
+  const initial = label.trim().charAt(0).toUpperCase() || '?';
 
   return (
     <div className={styles.root} ref={ref}>
@@ -55,8 +56,11 @@ export default function UserMenu() {
         aria-expanded={open}
         title={user?.email}
       >
+        <span className={styles.avatar} aria-hidden>
+          {initial}
+          {unread > 0 && <span className={styles.dot} aria-label={`${unread} unread messages`} />}
+        </span>
         <span className={styles.label}>{label}</span>
-        {unread > 0 && <span className={styles.dot} aria-label={`${unread} unread messages`} />}
         <span aria-hidden className={styles.caret}>▾</span>
       </button>
 

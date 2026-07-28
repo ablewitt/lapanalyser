@@ -20,6 +20,15 @@
   --success: #3cb44b;
   --sidebar-width: 260px;
 
+  /* Timing-screen semantics — the pit-wall colour language used across data
+     surfaces (admin readouts, status ticks). Purple = "fastest/record". */
+  --fastest: #b06bff;
+  --caution: #ffb020;
+
+  /* Instrument readout face — tabular mono for every number the operator reads
+     at a glance (counts, storage, timestamps, IDs). */
+  --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
   /* Aliases so shared brand components (e.g. <Logo>) render correctly
      outside the public site's .apexRoot scope. */
   --apex-bg: var(--bg);
