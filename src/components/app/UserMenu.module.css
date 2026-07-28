@@ -5,9 +5,28 @@
 .trigger {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  font-size: 12.5px;
+  max-width: 210px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 20px;
+}
+
+/* Circular avatar with the account initial — the modern account affordance,
+   and the only thing shown once the row gets tight on mobile. */
+.avatar {
+  position: relative;
+  width: 27px;
+  height: 27px;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  font-family: 'Archivo', sans-serif;
   font-size: 12px;
-  max-width: 180px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, var(--red), var(--red-deep));
 }
 
 .label {
@@ -52,12 +71,16 @@
   color: var(--text);
 }
 
+/* Unread badge sits on the avatar corner; blue so it reads against the red. */
 .dot {
-  width: 8px;
-  height: 8px;
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: var(--red);
-  flex-shrink: 0;
+  background: var(--accent);
+  border: 2px solid var(--surface);
 }
 
 .badge {
@@ -81,6 +104,8 @@
 }
 
 @media (max-width: 768px) {
-  /* Keep the account label from crowding the tabs + hamburger in the header. */
-  .trigger { max-width: 108px; }
+  /* Collapse to just the avatar so the full-width view switcher has room. */
+  .trigger { padding: 4px; gap: 0; }
+  .label, .caret { display: none; }
+  .avatar { width: 30px; height: 30px; font-size: 13px; }
 }

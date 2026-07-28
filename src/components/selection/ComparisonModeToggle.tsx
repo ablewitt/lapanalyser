@@ -7,18 +7,24 @@ export default function ComparisonModeToggle() {
   return (
     <div className={styles.wrap}>
       <span className={styles.label}>Compare by</span>
-      <button
-        className={comparisonMode === 'distance' ? 'active' : ''}
-        onClick={() => toggle('distance')}
-      >
-        Distance
-      </button>
-      <button
-        className={comparisonMode === 'time' ? 'active' : ''}
-        onClick={() => toggle('time')}
-      >
-        Time
-      </button>
+      <div className={styles.seg} role="tablist" aria-label="Compare by">
+        <button
+          role="tab"
+          aria-selected={comparisonMode === 'distance'}
+          className={`${styles.segBtn} ${comparisonMode === 'distance' ? styles.segActive : ''}`}
+          onClick={() => toggle('distance')}
+        >
+          Distance
+        </button>
+        <button
+          role="tab"
+          aria-selected={comparisonMode === 'time'}
+          className={`${styles.segBtn} ${comparisonMode === 'time' ? styles.segActive : ''}`}
+          onClick={() => toggle('time')}
+        >
+          Time
+        </button>
+      </div>
     </div>
   );
 }

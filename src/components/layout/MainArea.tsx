@@ -27,15 +27,19 @@ export default function MainArea({ children, headerRight, onMenuToggle }: MainAr
             <span className={styles.menuBar} />
           </button>
         )}
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            className={activeTab === t.id ? 'active' : ''}
-            onClick={() => setActiveTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
+        <div className={styles.seg} role="tablist" aria-label="View">
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={activeTab === t.id}
+              className={`${styles.segBtn} ${activeTab === t.id ? styles.segActive : ''}`}
+              onClick={() => setActiveTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
         {headerRight && <div className={styles.headerRight}>{headerRight}</div>}
       </nav>
       <div className={styles.content}>{children}</div>
