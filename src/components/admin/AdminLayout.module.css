@@ -16,22 +16,68 @@
   padding: 16px 12px;
 }
 
+/* Mobile top bar + drawer backdrop — hidden on desktop. */
+.mobileBar { display: none; }
+.backdrop { display: none; }
+
+/* Hamburger toggle (mobile only, lives in .mobileBar). */
+.navToggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 40px;
+  height: 40px;
+  padding: 9px;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.navToggle:hover { border-color: var(--red); }
+.navToggleBar {
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--text);
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+.navToggleActive .navToggleBar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.navToggleActive .navToggleBar:nth-child(2) { opacity: 0; }
+.navToggleActive .navToggleBar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   padding: 0 4px 16px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .brandTag {
-  font-size: 11px;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.18em;
   color: var(--red);
 }
+
+/* "System online" pulse — the pit-wall tell that the console is live. */
+.pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 8px var(--red-glow);
+  animation: adminPulse 1.6s ease-in-out infinite;
+}
+@keyframes adminPulse { 50% { opacity: 0.3; } }
 
 .nav {
   display: flex;
@@ -43,13 +89,17 @@
 .navItem {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 6px;
+  gap: 11px;
+  padding: 9px 11px;
+  border-radius: 7px;
   color: var(--text-dim);
   text-decoration: none;
   font-size: 13px;
+  font-weight: 500;
+  transition: color 0.15s, background 0.15s;
 }
+
+.navIcon { display: inline-flex; opacity: 0.85; transition: color 0.15s; }
 
 .navItem:hover {
   background: var(--surface2);
@@ -59,13 +109,17 @@
 .navItemActive {
   background: var(--surface2);
   color: var(--text);
-  box-shadow: inset 2px 0 0 var(--red);
+  box-shadow: inset 3px 0 0 var(--red), 0 0 0 1px var(--border);
 }
+/* Active channel: icon ignites red, echoing the timing cursor bar. */
+.navItemActive .navIcon { color: var(--red); opacity: 1; }
 
 .backBtn {
   margin-top: 12px;
   font-size: 12px;
   width: 100%;
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
 }
 
 /* ── Content ─────────────────────────────────────────────── */
@@ -76,9 +130,40 @@
 }
 
 .panelTitle {
+  display: flex;
+  align-items: center;
+  gap: 11px;
   font-size: 22px;
   margin-bottom: 20px;
 }
+/* Leading timing-marker tick — the shared instrument cue on every panel head. */
+.panelTitle::before {
+  content: '';
+  width: 4px;
+  height: 0.95em;
+  border-radius: 1px;
+  background: linear-gradient(var(--red), var(--red-deep));
+  box-shadow: 0 0 10px var(--red-glow);
+}
+
+/* Dashboard status header: mono eyebrow with a live pulse over the title. */
+.statusHead { margin-bottom: 22px; }
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+.eyebrow .pulse { background: var(--success); box-shadow: 0 0 8px rgba(60, 180, 75, 0.6); }
+.eyebrowLive { color: var(--success); }
+.eyebrowSep { color: var(--text-dim); opacity: 0.45; }
+.statusHead .panelTitle { margin-bottom: 0; }
 
 .error {
   border-left: 3px solid var(--danger);
@@ -89,47 +174,77 @@
   font-size: 13px;
 }
 
-/* ── Stat cards ──────────────────────────────────────────── */
+/* ── Stat cards — the gauge cluster ──────────────────────────
+   Each readout carries a semantic top-tick (set via --tick inline) so the row
+   reads like an instrument panel rather than five identical boxes. */
 .statGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  gap: 14px;
 }
 
 .statCard {
+  position: relative;
+  overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 18px;
+  border-radius: 10px;
+  padding: 17px 18px 16px;
+  transition: border-color 0.15s;
 }
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--tick, var(--red)), transparent 88%);
+}
+.statCard:hover { border-color: color-mix(in srgb, var(--tick, var(--red)) 55%, var(--border)); }
 
 .statValue {
-  font-size: 30px;
+  font-family: var(--mono);
+  font-size: 32px;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
 .statLabel {
-  margin-top: 6px;
-  font-size: 12px;
+  margin-top: 8px;
+  font-size: 10.5px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.09em;
   color: var(--text-dim);
 }
 
-/* ── Tables (users / sessions) ───────────────────────────── */
-.tableWrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
-.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+/* ── Tables (users / sessions / audit) ───────────────────────
+   Data cells set in tabular mono so columns line up like a timing feed. */
+.tableWrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+.table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
 .table th {
-  text-align: left; padding: 10px 12px; background: var(--surface);
-  border-bottom: 1px solid var(--border); font-size: 11px;
-  text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); white-space: nowrap;
+  text-align: left; padding: 11px 14px; background: var(--surface2);
+  border-bottom: 1px solid var(--border); font-size: 10.5px;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); white-space: nowrap;
 }
-.table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-.table tr:last-child td { border-bottom: none; }
+.table td {
+  padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle;
+  box-shadow: inset 3px 0 0 transparent; transition: box-shadow 0.12s;
+}
+.table tbody tr:last-child td { border-bottom: none; }
+/* Hover ignites a red cursor bar down the row — the selected-lap tell. */
+.table tbody tr:hover td { background: var(--surface); }
+.table tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--red); }
+
+/* Mono for numeric / machine columns (counts, storage, dates, IDs, times). */
+.num { font-family: var(--mono); font-size: 12.5px; color: var(--text); }
 
 .userName { font-weight: 600; }
-.userEmail { font-size: 11px; color: var(--text-dim); }
+.userEmail { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
 .dim { color: var(--text-dim); font-style: italic; }
 
 .dangerBtn { font-size: 12px; color: var(--danger); border-color: transparent; }
@@ -167,7 +282,7 @@
   font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim);
 }
 .auditFilters input, .auditFilters select { font-size: 13px; color: var(--text); }
-.auditTime { white-space: nowrap; color: var(--text-dim); }
+.auditTime { white-space: nowrap; color: var(--text-dim); font-family: var(--mono); font-size: 12px; }
 .auditDetails { color: var(--text-dim); }
 .auditMore { display: flex; justify-content: center; margin-top: 14px; }
 
@@ -268,3 +383,133 @@
 .replyBox textarea { width: 100%; min-height: 70px; }
 .replyActions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
 .internalToggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); }
+
+/* ── Mobile ──────────────────────────────────────────────────
+   The sidebar becomes an off-canvas drawer reachable from a top bar, so the
+   full width goes to the content. Spreadsheet tables reflow into stacked
+   readout cards (one card per row) instead of scrolling sideways. */
+@media (max-width: 768px) {
+  .mobileBar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 54px;
+    padding: 0 12px;
+    z-index: 30;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .mobileBar .brand {
+    padding: 0;
+    margin: 0;
+    border: none;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    width: min(280px, 84vw);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  }
+  .sidebarOpen { transform: translateX(0); }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  .content {
+    padding: 70px 16px 24px;
+  }
+
+  .panelTitle { font-size: 19px; margin-bottom: 16px; }
+
+  /* Larger tap targets for nav + row actions on touch. */
+  .navItem { padding: 12px 12px; font-size: 14px; }
+  .rowActions button,
+  .table td button { padding: 8px 13px; }
+
+  /* Tables → readout cards. Header row is visually hidden; each cell shows its
+     column name (from data-label) beside the value. */
+  .tableWrap { border: none; overflow: visible; border-radius: 0; }
+  .table { font-size: 13px; }
+  .table thead {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .table tbody { display: flex; flex-direction: column; gap: 12px; }
+  .table tr {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--red);
+    border-radius: 12px;
+    padding: 4px 15px;
+  }
+  .table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    box-shadow: none;
+  }
+  .table tbody tr td:last-child { border-bottom: none; }
+  .table td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    text-align: left;
+    flex-shrink: 0;
+  }
+  /* The name/identity cell becomes the card's title row, pulled to the top
+     even when its column sits mid-table (e.g. the audit action). */
+  .table td[data-primary] {
+    order: -1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    text-align: left;
+    padding: 12px 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .table td[data-primary]::before { display: none; }
+  /* No hover cursor on touch — the card's left rail is the accent instead. */
+  .table tbody tr:hover td,
+  .table tbody tr:hover td:first-child { background: transparent; box-shadow: none; }
+  .rowActions { gap: 8px; }
+
+  /* Support: stack the ticket list above the open thread. */
+  .ticketLayout { grid-template-columns: 1fr; }
+  .ticketList { max-height: 260px; }
+  .ticketDetail { min-height: 260px; }
+  .message { max-width: 100%; }
+
+  /* Audit filters wrap to full-width fields. */
+  .auditHead { flex-wrap: wrap; gap: 10px; }
+  .auditFilters label { flex: 1 1 140px; }
+
+  .search { max-width: none; }
+  .statGrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+}

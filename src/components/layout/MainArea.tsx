@@ -8,11 +8,25 @@ const TABS: { id: ActiveTab; label: string }[] = [
   { id: 'table', label: 'Table' },
 ];
 
-export default function MainArea({ children, headerRight }: { children: ReactNode; headerRight?: ReactNode }) {
+interface MainAreaProps {
+  children: ReactNode;
+  headerRight?: ReactNode;
+  /** When provided, renders a hamburger (mobile only) to open the sidebar drawer. */
+  onMenuToggle?: () => void;
+}
+
+export default function MainArea({ children, headerRight, onMenuToggle }: MainAreaProps) {
   const { activeTab, setActiveTab } = useUiStore();
   return (
     <main className={styles.main}>
       <nav className={styles.tabs}>
+        {onMenuToggle && (
+          <button className={styles.menuBtn} aria-label="Open menu" onClick={onMenuToggle}>
+            <span className={styles.menuBar} />
+            <span className={styles.menuBar} />
+            <span className={styles.menuBar} />
+          </button>
+        )}
         {TABS.map(t => (
           <button
             key={t.id}

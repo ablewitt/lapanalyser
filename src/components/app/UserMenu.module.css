@@ -79,3 +79,8 @@
   border-color: transparent;
   color: var(--text);
 }
+
+@media (max-width: 768px) {
+  /* Keep the account label from crowding the tabs + hamburger in the header. */
+  .trigger { max-width: 108px; }
+}

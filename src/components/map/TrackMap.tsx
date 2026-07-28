@@ -248,7 +248,7 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
         center={center}
         zoom={16}
         maxZoom={22}
-        style={{ height: 'calc(100% - 40px)', width: '100%' }}
+        style={{ flex: '1 1 0', minHeight: 0, width: '100%' }}
       >
         <MapReady onReady={handleMapReady} />
         {baseMap === 'osm' && (

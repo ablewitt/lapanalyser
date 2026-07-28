@@ -1,12 +1,22 @@
 .container { height: 100%; width: 100%; display: flex; flex-direction: column; }
 .controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
   padding: 6px 10px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
-  height: 40px;
+  flex-shrink: 0;
 }
 .label { color: var(--text-dim); font-size: 11px; margin-right: 4px; }
 .divider { width: 1px; height: 16px; background: var(--border); margin: 0 6px; flex-shrink: 0; }
+
+@media (max-width: 768px) {
+  /* On its own line, each group's label acts as a wrap point so the buttons
+     don't run off the right edge; give them a touch-sized hit area. */
+  .controls { gap: 5px 6px; padding: 8px 10px; }
+  .controls button { padding: 6px 11px; }
+  .label { flex-basis: 100%; margin: 2px 0 0; }
+  .divider { display: none; }
+}

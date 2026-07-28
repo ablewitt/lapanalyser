@@ -8,3 +8,33 @@
   flex-direction: column;
   overflow: hidden;
 }
+
+/* Backdrop only matters when the sidebar is an off-canvas drawer (mobile). */
+.backdrop { display: none; }
+
+/* ── Mobile ──────────────────────────────────────────────────
+   The sidebar slides in over the workspace instead of permanently eating
+   ~260px of a narrow screen. Toggled from the hamburger in the tab header. */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1200;
+    width: min(300px, 86vw);
+    min-width: 0;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  }
+  .sidebarOpen { transform: translateX(0); }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1150;
+    background: rgba(0, 0, 0, 0.55);
+  }
+}

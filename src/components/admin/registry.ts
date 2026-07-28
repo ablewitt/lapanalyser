@@ -15,16 +15,15 @@ export interface AdminModule {
   path: string;
   /** Sidebar label. */
   label: string;
-  /** Small emoji/icon shown beside the label. */
-  icon: string;
   component: ComponentType;
 }
 
+// The nav icon for each entry lives in AdminIcons.tsx, keyed by this path.
 export const ADMIN_MODULES: AdminModule[] = [
-  { path: '', label: 'Dashboard', icon: '📊', component: DashboardPanel },
-  { path: 'users', label: 'Users', icon: '👥', component: UsersPanel },
-  { path: 'sessions', label: 'Sessions', icon: '📁', component: SessionsPanel },
-  { path: 'tickets', label: 'Support', icon: '🎫', component: TicketsPanel },
-  { path: 'audit', label: 'Audit log', icon: '📜', component: AuditPanel },
+  { path: '', label: 'Dashboard', component: DashboardPanel },
+  { path: 'users', label: 'Users', component: UsersPanel },
+  { path: 'sessions', label: 'Sessions', component: SessionsPanel },
+  { path: 'tickets', label: 'Support', component: TicketsPanel },
+  { path: 'audit', label: 'Audit log', component: AuditPanel },
   // Later phases register here: analytics.
 ];

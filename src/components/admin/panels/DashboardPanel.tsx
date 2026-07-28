@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -20,10 +21,13 @@ export default function DashboardPanel() {
   const [daily, setDaily] = useState<DailyCount[]>([]);
   const [circuits, setCircuits] = useState<TopCircuit[]>([]);
   const [days, setDays] = useState(30);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchStatsTotals().then(setTotals).catch(e => setError(e instanceof Error ? e.message : 'Failed to load stats'));
+    fetchStatsTotals()
+      .then(t => { setTotals(t); setUpdatedAt(new Date()); })
+      .catch(e => setError(e instanceof Error ? e.message : 'Failed to load stats'));
     fetchTopCircuits().then(setCircuits).catch(() => {});
   }, []);
 
@@ -31,13 +35,14 @@ export default function DashboardPanel() {
     fetchDailyCounts(days).then(setDaily).catch(() => {});
   }, [days]);
 
-  const cards: { label: string; value: string }[] = totals
+  // Each readout gets a timing-screen accent colour (its top-tick).
+  const cards: { label: string; value: string; accent: string }[] = totals
     ? [
-        { label: 'Users', value: String(totals.users) },
-        { label: 'Sessions', value: String(totals.sessions) },
-        { label: 'Public sessions', value: String(totals.public_sessions) },
-        { label: 'Open tickets', value: String(totals.open_tickets) },
-        { label: 'Storage', value: formatBytes(totals.storage_bytes) },
+        { label: 'Users', value: String(totals.users), accent: 'var(--accent)' },
+        { label: 'Sessions', value: String(totals.sessions), accent: 'var(--red)' },
+        { label: 'Public sessions', value: String(totals.public_sessions), accent: 'var(--fastest)' },
+        { label: 'Open tickets', value: String(totals.open_tickets), accent: 'var(--caution)' },
+        { label: 'Storage', value: formatBytes(totals.storage_bytes), accent: 'var(--success)' },
       ]
     : [];
 
@@ -45,12 +50,20 @@ export default function DashboardPanel() {
 
   return (
     <div>
-      <h1 className={styles.panelTitle}>Dashboard</h1>
+      <div className={styles.statusHead}>
+        <div className={styles.eyebrow}>
+          <span className={styles.pulse} aria-hidden />
+          <span className={styles.eyebrowLive}>System status</span>
+          <span className={styles.eyebrowSep}>/</span>
+          <span>{updatedAt ? `Updated ${updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : 'Loading…'}</span>
+        </div>
+        <h1 className={styles.panelTitle}>Dashboard</h1>
+      </div>
       {error && <div className={styles.error}>{error}</div>}
 
       <div className={styles.statGrid}>
-        {(cards.length ? cards : Array(5).fill({ label: '—', value: '—' })).map((c, i) => (
-          <div key={i} className={styles.statCard}>
+        {(cards.length ? cards : Array(5).fill({ label: '—', value: '—', accent: 'var(--border)' })).map((c, i) => (
+          <div key={i} className={styles.statCard} style={{ ['--tick']: c.accent } as CSSProperties}>
             <div className={styles.statValue}>{c.value}</div>
             <div className={styles.statLabel}>{c.label}</div>
           </div>

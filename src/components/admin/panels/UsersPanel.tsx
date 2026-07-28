@@ -65,11 +65,11 @@ export default function UsersPanel() {
           <tbody>
             {users.map(u => (
               <tr key={u.id}>
-                <td>
+                <td data-primary>
                   <div className={styles.userName}>{u.username || <span className={styles.dim}>no username</span>}</div>
                   <div className={styles.userEmail}>{u.email}</div>
                 </td>
-                <td>
+                <td data-label="Role">
                   <select
                     value={u.role}
                     disabled={busy === u.id}
@@ -79,11 +79,11 @@ export default function UsersPanel() {
                     <option value="admin">admin</option>
                   </select>
                 </td>
-                <td>{fmtDate(u.created_at)}</td>
-                <td>{fmtDate(u.last_sign_in_at)}</td>
-                <td>{u.session_count}</td>
-                <td>{formatBytes(u.storage_bytes)}</td>
-                <td>
+                <td data-label="Joined" className={styles.num}>{fmtDate(u.created_at)}</td>
+                <td data-label="Last seen" className={styles.num}>{fmtDate(u.last_sign_in_at)}</td>
+                <td data-label="Sessions" className={styles.num}>{u.session_count}</td>
+                <td data-label="Storage" className={styles.num}>{formatBytes(u.storage_bytes)}</td>
+                <td data-label="">
                   {u.id !== currentUserId && (
                     <button className={styles.dangerBtn} disabled={busy === u.id} onClick={() => removeUser(u)}>
                       Delete
