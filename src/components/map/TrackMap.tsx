@@ -57,10 +57,10 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
   const canvasLayerRef = useRef<TelemetryCanvasLayer | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
-  // Floating layer panel: expanded on desktop, collapsed to its button on phones
-  // so the map keeps the full pane.
-  const [controlsOpen, setControlsOpen] = useState(() =>
-    typeof window === 'undefined' ? true : window.innerWidth > 768);
+  // Floating layer panel: always starts collapsed so the map gets the full pane;
+  // opens only when the Layers button is pressed.
+  const [controlsOpen, setControlsOpen] = useState(false);
+  const toggleControls = useCallback(() => setControlsOpen(o => !o), []);
 
   const handleMapReady = useCallback((m: L.Map) => {
     mapRef.current = m;
@@ -304,7 +304,7 @@ const TrackMap = forwardRef<TrackMapHandle, Props>(function TrackMap({ selectedL
         <button
           className={styles.hudToggle}
           aria-expanded={controlsOpen}
-          onClick={() => setControlsOpen(o => !o)}
+          onClick={toggleControls}
           title="Map layers"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

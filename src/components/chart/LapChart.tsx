@@ -110,6 +110,8 @@ const LapChart = forwardRef<LapChartHandle, Props>(function LapChart(
           syncId="lap-sync"
           onMouseMove={onMouseMove}
           onMouseLeave={onMouseLeave}
+          onTouchStart={onMouseMove}
+          onTouchMove={onMouseMove}
           style={{ userSelect: 'none' }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />

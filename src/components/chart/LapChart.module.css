@@ -3,6 +3,13 @@
   padding-bottom: 2px;
 }
 
+/* Let a horizontal finger drag scrub the chart (moving the track marker) while
+   a vertical drag still scrolls the stack of charts. Set on the element Recharts
+   binds touch events to. */
+.panel :global(.recharts-wrapper) {
+  touch-action: pan-y;
+}
+
 .panelHeader {
   display: flex;
   align-items: baseline;
