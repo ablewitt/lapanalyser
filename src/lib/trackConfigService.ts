@@ -118,6 +118,15 @@ export async function setDefaultTrackConfig(configId: string, trackId: string): 
   if (error) throw new Error(error.message);
 }
 
+/** Clear the default flag on a config, leaving the track with no default. */
+export async function unsetDefaultTrackConfig(configId: string): Promise<void> {
+  const { error } = await supabase
+    .from('track_configs')
+    .update({ is_default: false })
+    .eq('id', configId);
+  if (error) throw new Error(error.message);
+}
+
 export async function deleteTrackConfig(id: string): Promise<void> {
   const { error } = await supabase.from('track_configs').delete().eq('id', id);
   if (error) throw new Error(error.message);

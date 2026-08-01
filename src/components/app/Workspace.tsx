@@ -22,6 +22,8 @@ import {
 } from '../../lib/sessionService';
 import { parseVboContent } from '../../lib/parseWorker';
 import { useSettingsSync } from '../../hooks/useSettingsSync';
+import { useSessionCircuit } from '../../hooks/useSessionCircuit';
+import { useAutoLoadDefaultConfig } from '../../hooks/useAutoLoadDefaultConfig';
 
 /**
  * The logged-in application shell (sidebar + charts/map/table). Rendered by the
@@ -36,6 +38,12 @@ export default function Workspace() {
   const { addSession } = useSessionsStore();
   const [managerOpen, setManagerOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Auto-apply the detected circuit's default track config (sectors + traps),
+  // app-wide so it shows on every tab — not only after visiting the Map tab.
+  const firstSession = useSessionsStore(s => s.sessions[0] ?? null);
+  const { active: activeCircuit } = useSessionCircuit(firstSession);
+  useAutoLoadDefaultConfig(activeCircuit?.name);
   const restoredUserRef = useRef<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
 

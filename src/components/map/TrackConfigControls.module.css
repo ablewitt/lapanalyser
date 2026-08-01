@@ -1,0 +1,83 @@
+/* Config zone: sits at the right of the map toolbar (own group so its dropdown
+   menu can be positioned), collapsing below the edit tools on mobile. */
+.group {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.select {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  max-width: 150px;
+}
+.select:hover { border-color: var(--text-dim); }
+
+.btn,
+.menuTrigger {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+}
+.btn:hover:not(:disabled),
+.menuTrigger:hover:not(:disabled) {
+  background: var(--surface2);
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+.btn:disabled,
+.menuTrigger:disabled { opacity: 0.45; cursor: default; }
+.menuTrigger { padding: 6px 10px; letter-spacing: 0.06em; }
+
+/* ── Actions menu ── */
+.menuWrap { position: relative; }
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 1300;
+  min-width: 184px;
+  padding: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.item {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 8px 11px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+.item:hover:not(:disabled) { background: var(--surface); color: var(--text); border-color: transparent; }
+.item:disabled { opacity: 0.4; cursor: default; }
+.itemDanger { color: var(--danger); }
+.itemDanger:hover:not(:disabled) { background: rgba(230, 76, 76, 0.12); color: var(--danger); }
+.divider { height: 1px; background: var(--border); margin: 3px 2px; }
+
+@media (max-width: 768px) {
+  /* Flow under the edit tools instead of clinging to the right edge. */
+  .group { margin-left: 0; }
+  .select { max-width: none; flex: 1; }
+  .btn, .menuTrigger { padding: 8px 13px; }
+  .item { padding: 10px 12px; }
+}

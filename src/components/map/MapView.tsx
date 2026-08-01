@@ -78,24 +78,24 @@ export default function MapView() {
     <div className={styles.wrap}>
       <div className={styles.sectorToolbar}>
         <button
-          className={addingSector ? 'active' : ''}
+          className={addingSector ? styles.toggleActive : ''}
           onClick={toggleSector}
           title="Click near the track to place a sector boundary"
         >
           + Sector
         </button>
         {boundaries.length > 0 && (
-          <button onClick={clearBoundaries}>Clear Sectors</button>
+          <button onClick={clearBoundaries}>Clear sectors</button>
         )}
         <button
-          className={addingSpeedTrap ? 'active' : ''}
+          className={addingSpeedTrap ? styles.toggleActive : ''}
           onClick={toggleSpeedTrap}
           title="Click near the track to place a speed trap"
         >
-          + Speed Trap
+          + Speed trap
         </button>
         {traps.length > 0 && (
-          <button onClick={clearTraps}>Clear Traps</button>
+          <button onClick={clearTraps}>Clear traps</button>
         )}
         <TrackConfigControls circuitName={activeCircuit?.name ?? null} />
       </div>

@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSectorsStore } from '../../store/sectors';
 import { useSpeedTrapsStore } from '../../store/speedTraps';
 import {
   fetchTrackConfigsForCircuit, findOrCreateTrack, saveTrackConfig,
-  updateTrackConfig, setDefaultTrackConfig, deleteTrackConfig,
+  updateTrackConfig, setDefaultTrackConfig, unsetDefaultTrackConfig, deleteTrackConfig,
 } from '../../lib/trackConfigService';
 import type { TrackConfig } from '../../lib/trackConfigService';
 import ShareDialog from '../sharing/ShareDialog';
+import styles from './TrackConfigControls.module.css';
 
 interface Props {
   circuitName: string | null;
@@ -17,6 +18,23 @@ export default function TrackConfigControls({ circuitName }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [sharingConfig, setSharingConfig] = useState<TrackConfig | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close the actions menu on outside click or Escape (mirrors the account menu).
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointer = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
+    document.addEventListener('mousedown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
 
   const sectors = useSectorsStore(s => s.boundaries);
   const addBoundary = useSectorsStore(s => s.addBoundary);
@@ -82,12 +100,17 @@ export default function TrackConfigControls({ circuitName }: Props) {
     }
   }
 
-  async function handleSetDefault() {
+  async function handleToggleDefault() {
     if (!selected) return;
     setIsBusy(true);
     try {
-      await setDefaultTrackConfig(selected.id, selected.trackId);
-      setConfigs(prev => prev.map(c => ({ ...c, is_default: c.id === selected.id })));
+      if (selected.is_default) {
+        await unsetDefaultTrackConfig(selected.id);
+        setConfigs(prev => prev.map(c => (c.id === selected.id ? { ...c, is_default: false } : c)));
+      } else {
+        await setDefaultTrackConfig(selected.id, selected.trackId);
+        setConfigs(prev => prev.map(c => ({ ...c, is_default: c.id === selected.id })));
+      }
     } catch (e) {
       alert(`Failed: ${(e as Error).message}`);
     } finally {
@@ -112,39 +135,82 @@ export default function TrackConfigControls({ circuitName }: Props) {
 
   if (!circuitName) return null;
 
+  // Run a menu action then close the menu.
+  const act = (fn: () => void) => () => { setMenuOpen(false); fn(); };
+
   return (
-    <>
-      <span style={{ borderLeft: '1px solid var(--border)', margin: '0 4px', alignSelf: 'stretch' }} />
-      {configs.length > 0 && (
-        <select
-          style={{ fontSize: 12 }}
-          value={selectedId ?? ''}
-          onChange={e => setSelectedId(e.target.value || null)}
-          disabled={isBusy}
-        >
-          {configs.map(c => (
-            <option key={c.id} value={c.id}>
-              {c.is_default ? '★ ' : ''}{c.name}
-            </option>
-          ))}
-        </select>
-      )}
-      {selected && (
+    <div className={styles.group}>
+      {selected ? (
         <>
-          <button onClick={handleLoad} disabled={isBusy} title="Apply this config to the map">Load</button>
-          <button onClick={handleSave} disabled={isBusy} title="Overwrite this config with current sectors & traps">Save</button>
+          <select
+            className={styles.select}
+            value={selectedId ?? ''}
+            onChange={e => setSelectedId(e.target.value || null)}
+            disabled={isBusy}
+            title="Switch track config"
+          >
+            {configs.map(c => (
+              <option key={c.id} value={c.id}>
+                {c.is_default ? '★ ' : ''}{c.name}
+              </option>
+            ))}
+          </select>
           <button
-            onClick={handleSetDefault}
-            disabled={isBusy || selected.is_default}
-            title={selected.is_default ? 'Already default' : 'Set as default'}
-          >★</button>
-          <button onClick={handleDelete} disabled={isBusy} title="Delete config">✕</button>
-          <button onClick={() => setSharingConfig(selected)} disabled={isBusy} title="Share config">⇗</button>
+            className={styles.btn}
+            onClick={handleSave}
+            disabled={isBusy}
+            title="Overwrite this config with the current sectors & traps"
+          >
+            Save
+          </button>
+          <div className={styles.menuWrap} ref={menuRef}>
+            <button
+              className={styles.menuTrigger}
+              onClick={() => setMenuOpen(o => !o)}
+              disabled={isBusy}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              title="Config actions"
+            >
+              •••
+            </button>
+            {menuOpen && (
+              <div className={styles.menu} role="menu">
+                <button className={styles.item} role="menuitem" onClick={act(handleLoad)}>
+                  Load into map
+                </button>
+                <button className={styles.item} role="menuitem" onClick={act(handleSaveAs)}>
+                  Save as new…
+                </button>
+                <button
+                  className={styles.item}
+                  role="menuitem"
+                  onClick={act(handleToggleDefault)}
+                >
+                  {selected.is_default ? 'Remove as default' : 'Set as default'}
+                </button>
+                <button className={styles.item} role="menuitem" onClick={act(() => setSharingConfig(selected))}>
+                  Share…
+                </button>
+                <div className={styles.divider} />
+                <button className={`${styles.item} ${styles.itemDanger}`} role="menuitem" onClick={act(handleDelete)}>
+                  Delete config
+                </button>
+              </div>
+            )}
+          </div>
         </>
+      ) : (
+        <button
+          className={styles.btn}
+          onClick={handleSaveAs}
+          disabled={isBusy}
+          title="Save the current sectors & traps as a new config"
+        >
+          Save as config…
+        </button>
       )}
-      <button onClick={handleSaveAs} disabled={isBusy} title="Save current sectors & traps as a new config">
-        Save as…
-      </button>
+
       {sharingConfig && (
         <ShareDialog
           resourceType="track_config"
@@ -158,6 +224,6 @@ export default function TrackConfigControls({ circuitName }: Props) {
           onClose={() => setSharingConfig(null)}
         />
       )}
-    </>
+    </div>
   );
 }

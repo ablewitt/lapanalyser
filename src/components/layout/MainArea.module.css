@@ -12,10 +12,12 @@
   padding: 9px 14px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
-  /* Own stacking context above .content so the account dropdown isn't
-     painted over by Leaflet's map panes/controls (z-index up to ~1000). */
+  /* Own stacking context above the map area so the account dropdown stays on top
+     of every map control — Leaflet's panes/controls (~1000), the Layers HUD
+     (1000) and the config toolbar (1200). Stays below modals (2000+) and, on
+     mobile, below the sidebar drawer (which raises itself above this). */
   position: relative;
-  z-index: 1000;
+  z-index: 1300;
 }
 
 /* ── View switcher — segmented control ───────────────────────
