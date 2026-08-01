@@ -1,9 +1,59 @@
 .wrap { height: 100%; width: 100%; display: flex; flex-direction: column; }
 .empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-dim); }
-.sectorToolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 10px; background: var(--surface); border-bottom: 1px solid #2a2d3d; flex-shrink: 0; }
+
+.sectorToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  /* Stacking context above the map so the config actions menu (which drops down
+     over the map) isn't painted under Leaflet panes or the Layers HUD. */
+  position: relative;
+  z-index: 1200;
+}
+
+/* Unify every control in the toolbar — including TrackConfigControls' buttons
+   and select, which render as direct children via a fragment — as ghost pills,
+   matching the map Layers panel and the segmented view switcher. Direct-child
+   combinators keep these off the ShareDialog it can render. */
+.sectorToolbar > button,
+.sectorToolbar > select {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+}
+.sectorToolbar > button:hover:not(:disabled) {
+  background: var(--surface2);
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+.sectorToolbar > select { color: var(--text); background: var(--surface2); }
+.sectorToolbar > select:hover { border-color: var(--text-dim); }
+.sectorToolbar > button:disabled { opacity: 0.45; cursor: default; }
+
+/* Active placing-mode toggle (+ Sector / + Speed Trap): flat red tint, not the
+   loud gradient — matches the active chip in the Layers panel. */
+.sectorToolbar > button.toggleActive {
+  background: rgba(255, 46, 77, 0.16);
+  border-color: var(--red);
+  color: #fff;
+}
+.sectorToolbar > button.toggleActive:hover:not(:disabled) {
+  background: rgba(255, 46, 77, 0.24);
+  border-color: var(--red);
+  color: #fff;
+}
 
 @media (max-width: 768px) {
-  /* Roomier controls that wrap instead of overflowing off the right edge. */
   .sectorToolbar { gap: 6px 8px; padding: 8px 10px; }
-  .sectorToolbar button { padding: 7px 12px; }
+  .sectorToolbar > button,
+  .sectorToolbar > select { padding: 8px 13px; }
 }
