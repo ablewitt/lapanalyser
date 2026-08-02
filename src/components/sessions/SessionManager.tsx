@@ -7,11 +7,13 @@ import {
   fetchUserSessions, downloadSessionContent, renameSession,
   deleteSession, rekeySession, updateSessionMeta, detectCircuitName,
   fetchOwnerUsernames, fetchSessionsWithPrivateShares,
+  updateSessionMetadata, readSessionMetadata,
 } from '../../lib/sessionService';
 import type { DbSessionRow } from '../../lib/sessionService';
 import { parseVboContent } from '../../lib/parseWorker';
 import { formatMs } from '../../utils/format';
 import ShareDialog from '../sharing/ShareDialog';
+import SessionMetadataDialog from './SessionMetadataDialog';
 import { useAuthStore } from '../../store/auth';
 
 type SortKey = 'date' | 'name' | 'venue' | 'laps' | 'best';
@@ -42,6 +44,7 @@ export default function SessionManager({ onClose }: Props) {
   const [renameValue, setRenameValue] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [sharingRow, setSharingRow] = useState<DbSessionRow | null>(null);
+  const [editingRow, setEditingRow] = useState<DbSessionRow | null>(null);
   const [busyIds, setBusyIds] = useState<string[]>([]);
   const renameInputRef = useRef<HTMLInputElement>(null);
 
@@ -250,6 +253,7 @@ export default function SessionManager({ onClose }: Props) {
                   const isBusy = busyIds.includes(row.id);
                   const isConfirmingDelete = confirmDeleteId === row.id && isOwn;
                   const isRenaming = renamingId === row.id && isOwn;
+                  const hasMeta = Object.keys(readSessionMetadata(row)).length > 0;
 
                   return (
                     <tr
@@ -311,6 +315,14 @@ export default function SessionManager({ onClose }: Props) {
                             )}
                             {isOwn && (
                               <button
+                                onClick={() => setEditingRow(row)}
+                                disabled={isBusy}
+                                title={hasMeta ? 'Edit details (vehicle, setup, notes)' : 'Add details (vehicle, setup, notes)'}
+                                style={{ color: hasMeta ? 'var(--accent)' : undefined }}
+                              >ⓘ</button>
+                            )}
+                            {isOwn && (
+                              <button
                                 onClick={() => setSharingRow(row)}
                                 disabled={isBusy}
                                 title={row.is_public ? 'Public' : privatelySharedIds.has(row.id) ? 'Shared privately' : 'Share'}
@@ -348,6 +360,37 @@ export default function SessionManager({ onClose }: Props) {
   return (
     <>
       {modal}
+      {editingRow && (
+        <SessionMetadataDialog
+          title="Session details"
+          subtitle={editingRow.filename}
+          showName
+          initialName={editingRow.display_name ?? ''}
+          namePlaceholder={editingRow.filename}
+          initial={readSessionMetadata(editingRow)}
+          submitLabel="Save"
+          onSubmit={async ({ name, metadata }) => {
+            const row = editingRow;
+            setEditingRow(null);
+            try {
+              // Rename only when changed; an empty name reverts to the filename.
+              if (name.trim() !== (row.display_name ?? '')) {
+                await renameSession(row.id, name);
+                const newDisplay = name.trim() || null;
+                setRows(prev => prev.map(r => r.id === row.id ? { ...r, display_name: newDisplay } : r));
+                renameSessionInStore(row.id, newDisplay);
+              }
+              const saved = await updateSessionMetadata(row.id, metadata);
+              setRows(prev => prev.map(r =>
+                r.id === row.id ? { ...r, metadata: saved as DbSessionRow['metadata'] } : r,
+              ));
+            } catch (e) {
+              alert(`Save failed: ${(e as Error).message}`);
+            }
+          }}
+          onCancel={() => setEditingRow(null)}
+        />
+      )}
       {sharingRow && (
         <ShareDialog
           resourceType="session"

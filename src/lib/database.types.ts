@@ -55,6 +55,7 @@ export interface Database {
           lap_count: number | null;
           best_lap_time_ms: number | null;
           circuit_name: string | null;
+          metadata: Json | null;
           created_at: string;
           updated_at: string;
         };
@@ -71,6 +72,7 @@ export interface Database {
           lap_count?: number | null;
           best_lap_time_ms?: number | null;
           circuit_name?: string | null;
+          metadata?: Json | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -84,6 +86,7 @@ export interface Database {
           lap_count?: number | null;
           best_lap_time_ms?: number | null;
           circuit_name?: string | null;
+          metadata?: Json | null;
           updated_at?: string;
         };
         Relationships: [];

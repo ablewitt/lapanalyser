@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Database } from './database.types';
+import type { Database, Json } from './database.types';
 import type { Session, GpsCoord } from '../domain/models';
 import { detectCircuit, type CircuitEntry } from '../domain/circuitDetection';
 
@@ -20,6 +20,38 @@ export async function detectCircuitName(gpsPoints: GpsCoord[]): Promise<string |
 }
 
 export type DbSessionRow = Database['public']['Tables']['sessions']['Row'];
+
+// ── Session metadata (optional, user-entered) ─────────────────
+
+export interface SessionMetadata {
+  vehicle?: string;
+  engine?: string;
+  suspension?: string;
+  notes?: string;
+}
+
+export const SESSION_META_FIELDS: { key: keyof SessionMetadata; label: string; multiline?: boolean }[] = [
+  { key: 'vehicle', label: 'Vehicle' },
+  { key: 'engine', label: 'Engine' },
+  { key: 'suspension', label: 'Suspension' },
+  { key: 'notes', label: 'Notes', multiline: true },
+];
+
+/** Trim values and drop empties; returns null when nothing meaningful remains. */
+export function normalizeSessionMetadata(meta: SessionMetadata | null | undefined): SessionMetadata | null {
+  if (!meta) return null;
+  const out: SessionMetadata = {};
+  for (const { key } of SESSION_META_FIELDS) {
+    const v = meta[key]?.trim();
+    if (v) out[key] = v;
+  }
+  return Object.keys(out).length > 0 ? out : null;
+}
+
+/** Typed view of a row's JSONB metadata. */
+export function readSessionMetadata(row: Pick<DbSessionRow, 'metadata'>): SessionMetadata {
+  return (row.metadata as SessionMetadata | null) ?? {};
+}
 
 // ── ID re-keying ──────────────────────────────────────────────
 
@@ -101,6 +133,8 @@ export async function saveSessionRecord(
   lapCount: number,
   bestLapTimeMs: number | null,
   circuitName: string | null,
+  metadata: SessionMetadata | null = null,
+  displayName: string | null = null,
 ): Promise<DbSessionRow> {
   const { data, error } = await supabase
     .from('sessions')
@@ -108,12 +142,14 @@ export async function saveSessionRecord(
       id: dbId,
       user_id: userId,
       filename,
+      display_name: displayName?.trim() || null,
       venue_raw: venue,
       date_recorded: dateRecorded.toISOString(),
       storage_path: storagePath,
       lap_count: lapCount,
       best_lap_time_ms: bestLapTimeMs,
       circuit_name: circuitName,
+      metadata: normalizeSessionMetadata(metadata) as Json | null,
       is_public: false,
     })
     .select()
@@ -192,6 +228,16 @@ export async function updateSessionMeta(
     .update({ lap_count: lapCount, best_lap_time_ms: bestLapTimeMs, circuit_name: circuitName })
     .eq('id', id);
   // Silently ignore errors — this is a best-effort backfill
+}
+
+export async function updateSessionMetadata(id: string, metadata: SessionMetadata | null): Promise<SessionMetadata | null> {
+  const normalized = normalizeSessionMetadata(metadata);
+  const { error } = await supabase
+    .from('sessions')
+    .update({ metadata: normalized as Json | null })
+    .eq('id', id);
+  if (error) throw new Error(error.message);
+  return normalized;
 }
 
 export async function renameSession(id: string, displayName: string): Promise<void> {
